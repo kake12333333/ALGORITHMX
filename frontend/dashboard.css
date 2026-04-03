@@ -507,3 +507,77 @@
   }
 }
 
+@media (max-width: 1200px) {
+  .vp-dashboard-top,
+  .vp-summary-grid,
+  .vp-filter-tabs,
+  .vp-dashboard-list {
+    max-width: 100%;
+  }
+
+  .vp-alert-card-shell {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 992px) {
+  .vp-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .vp-dashboard-top-actions {
+    flex-wrap: wrap;
+  }
+
+  .vp-alert-title {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 768px) {
+  .vp-filter-tabs {
+    gap: 8px;
+  }
+
+  .vp-filter-tab {
+    flex: 1 1 calc(50% - 8px);
+    text-align: center;
+  }
+
+  .vp-alert-title {
+    font-size: 17px;
+  }
+
+  .vp-alert-location,
+  .vp-alert-time {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 576px) {
+  .vp-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vp-dashboard-report-btn,
+  .vp-live-indicator {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .vp-filter-tab {
+    flex: 1 1 100%;
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+
+  .vp-alert-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .vp-stat-group {
+    padding: 6px;
+  }
+}
+

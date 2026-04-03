@@ -1,0 +1,64 @@
+.vol-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.volunteer-name-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.volunteer-sub {
+  color: var(--white-dim);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.vol-skill {
+  border: 1px solid rgba(77, 159, 255, 0.35);
+  background: rgba(26, 111, 255, 0.12);
+  padding: 4px 7px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.vol-stat-row {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.vol-stat {
+  border: 1px solid rgba(77, 159, 255, 0.16);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 8px;
+}
+
+.vol-stat .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--white-dim);
+  letter-spacing: 1px;
+}
+
+.vol-stat .value {
+  margin-top: 3px;
+  font-size: 14px;
+  color: var(--white);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .vol-stat-row {
+    grid-template-columns: 1fr;
+  }
+}

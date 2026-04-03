@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeriPulse - Admin Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="admin-analytics.css">
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<canvas id="earth-canvas" width="800" height="800"></canvas>
+<div class="alert-ticker"><div class="ticker-inner" id="ticker"></div></div>
+
+<aside class="admin-sidebar">
+  <a class="admin-sidebar-brand" href="admin.html"><iframe class="admin-sidebar-logo" src="responza_hero_logo_final.html" title="VeriPulse Logo" loading="lazy"></iframe>VeriPulse</a>
+  <nav class="admin-menu">
+    <a class="admin-link" data-page="admin.html" href="admin.html">Dashboard</a>
+    <a class="admin-link" data-page="admin-alerts.html" href="admin-alerts.html">Alert Management</a>
+    <a class="admin-link" data-page="admin-volunteers.html" href="admin-volunteers.html">Volunteers</a>
+    <a class="admin-link" data-page="admin-reports.html" href="admin-reports.html">Incident Reports</a>
+    <a class="admin-link" data-page="admin-analytics.html" href="admin-analytics.html">Analytics</a>
+  </nav>
+  <div class="admin-side-footer">Admin command panel</div>
+  <button class="admin-link admin-logout" id="admin-logout" type="button">Logout</button>
+</aside>
+
+<main class="admin-page">
+  <header class="admin-hero">
+    <div class="admin-eyebrow">Operational Metrics</div>
+    <h1 class="admin-title">Analytics</h1>
+    <p class="admin-subtitle">Track response performance, trust trends, and volunteer impact through quick visual summaries.</p>
+  </header>
+
+  <section class="admin-grid-cards">
+    <article class="admin-stat"><div class="admin-stat-label">Avg. Verification Time</div><div class="admin-stat-value">7m</div></article>
+    <article class="admin-stat"><div class="admin-stat-label">Alert Accuracy</div><div class="admin-stat-value">88%</div></article>
+    <article class="admin-stat"><div class="admin-stat-label">Volunteer Acceptance</div><div class="admin-stat-value">64%</div></article>
+    <article class="admin-stat"><div class="admin-stat-label">Resolved Today</div><div class="admin-stat-value">42</div></article>
+  </section>
+
+  <section class="admin-section">
+    <h2 class="admin-section-title">Priority Distribution</h2>
+    <div class="admin-chart" id="priority-chart"></div>
+  </section>
+
+  <section class="admin-section">
+    <h2 class="admin-section-title">Zone Load Index</h2>
+    <div class="admin-chart" id="zone-chart"></div>
+  </section>
+</main>
+
+<script src="citizen-ui.js"></script>
+<script src="admin.js"></script>
+<script src="admin-analytics.js"></script>
+</body>
+</html>

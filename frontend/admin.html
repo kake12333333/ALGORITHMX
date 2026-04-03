@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeriPulse - Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<canvas id="earth-canvas" width="800" height="800"></canvas>
+<div class="alert-ticker"><div class="ticker-inner" id="ticker"></div></div>
+
+<aside class="admin-sidebar">
+  <a class="admin-sidebar-brand" href="admin.html"><iframe class="admin-sidebar-logo" src="responza_hero_logo_final.html" title="VeriPulse Logo" loading="lazy"></iframe>VeriPulse</a>
+  <nav class="admin-menu">
+    <a class="admin-link" data-page="admin.html" href="admin.html">Dashboard</a>
+    <a class="admin-link" data-page="admin-alerts.html" href="admin-alerts.html">Alert Management</a>
+    <a class="admin-link" data-page="admin-volunteers.html" href="admin-volunteers.html">Volunteers</a>
+    <a class="admin-link" data-page="admin-reports.html" href="admin-reports.html">Incident Reports</a>
+    <a class="admin-link" data-page="admin-analytics.html" href="admin-analytics.html">Analytics</a>
+  </nav>
+  <div class="admin-side-footer">Admin command panel</div>
+  <button class="admin-link admin-logout" id="admin-logout" type="button">Logout</button>
+</aside>
+
+<main class="admin-page">
+  <header class="admin-hero">
+    <div class="admin-eyebrow">Admin Control Center</div>
+    <h1 class="admin-title">Dashboard Overview</h1>
+    <p class="admin-subtitle">Monitor platform trust, approve critical alerts, and manage incident operations from one command interface.</p>
+  </header>
+
+  <section class="admin-grid-cards" id="overview-cards"></section>
+
+  <section class="admin-section" style="margin-top: 10px;">
+    <h2 class="admin-section-title" style="margin-bottom: 6px;">AI Insight Snapshot</h2>
+    <p style="margin: 0; color: var(--white-dim); font-size: 13px; line-height: 1.6;">
+      Suspicious/fake visibility helps admins quickly isolate low-trust incidents before manual escalation.
+    </p>
+  </section>
+
+  <section class="admin-section">
+    <h2 class="admin-section-title">Recent Admin History (AI Actions)</h2>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Incident Title</th>
+          <th>Assigned Volunteers</th>
+          <th>AI Trust Score</th>
+          <th>AI Priority</th>
+          <th>AI Reason</th>
+        </tr>
+      </thead>
+      <tbody id="ai-history-body"></tbody>
+    </table>
+  </section>
+
+</main>
+
+<script>
+  // Dashboard dummy data is isolated for easy backend replacement later.
+  const dashboardOverviewData = [
+    { label: 'Total Alerts', value: 286 },
+    { label: 'Verified Alerts', value: 214 },
+    { label: 'High Priority', value: 37 },
+    { label: 'Suspicious / Fake Reports', value: 19 }
+  ];
+
+  const volunteerPool = [
+    'Rahul Sharma',
+    'Priya Menon',
+    'Aman Verma',
+    'Neha Kapoor',
+    'Ritesh Iyer',
+    'Sneha Nair',
+    'Kunal Deshmukh',
+    'Anjali Singh'
+  ];
+
+  const incidentScaleRules = {
+    small: { min: 1, max: 2 },
+    medium: { min: 2, max: 3 },
+    high: { min: 3, max: 4 }
+  };
+
+  const aiIncidentHistorySeed = [
+    {
+      incidentTitle: 'Fire reported at Airoli Sector 5',
+      incidentScale: 'high',
+      trustScore: 92,
+      priority: 'High',
+      trustScoreReason: 'Multiple media uploads and matching nearby reports increased confidence.',
+      priorityReason: 'High severity signal in a crowded corridor required immediate prioritization.'
+    },
+    {
+      incidentTitle: 'Chemical smell near MIDC lane',
+      incidentScale: 'high',
+      trustScore: 88,
+      priority: 'High',
+      trustScoreReason: 'Two independent reporters submitted consistent geo and time metadata.',
+      priorityReason: 'Potential hazardous exposure in an industrial area elevated urgency to high.'
+    },
+    {
+      incidentTitle: 'Waterlogging at Palm Beach road',
+      incidentScale: 'medium',
+      trustScore: 74,
+      priority: 'Medium',
+      trustScoreReason: 'Traffic slowdown telemetry aligned with citizen media from the same block.',
+      priorityReason: 'Road impact is moderate and localized, so medium response was assigned.'
+    },
+    {
+      incidentTitle: 'Bridge crack report near Old Mill point',
+      incidentScale: 'small',
+      trustScore: 41,
+      priority: 'Suspicious',
+      trustScoreReason: 'Low evidence reliability due to missing corroboration and metadata mismatch.',
+      priorityReason: 'Unverified structural claim with low confidence was marked suspicious for review.'
+    }
+  ];
+
+  function getVolunteerCountByScale(scale) {
+    const rule = incidentScaleRules[scale] || incidentScaleRules.small;
+    return Math.floor(Math.random() * (rule.max - rule.min + 1)) + rule.min;
+  }
+
+  function assignVolunteersByScale(scale, title, index) {
+    const requiredCount = getVolunteerCountByScale(scale);
+    const rotation = (title.length + index) % volunteerPool.length;
+    const rotatedPool = volunteerPool.slice(rotation).concat(volunteerPool.slice(0, rotation));
+    return rotatedPool.slice(0, requiredCount);
+  }
+
+  const adminAiHistoryData = aiIncidentHistorySeed.map(function (incident, index) {
+    return {
+      incidentTitle: incident.incidentTitle,
+      incidentScale: incident.incidentScale,
+      assignedVolunteers: assignVolunteersByScale(incident.incidentScale, incident.incidentTitle, index),
+      trustScore: incident.trustScore,
+      priority: incident.priority,
+      trustScoreReason: incident.trustScoreReason,
+      priorityReason: incident.priorityReason
+    };
+  });
+
+  function priorityChip(priority) {
+    if (priority === 'High') return '<span class="admin-chip danger">High</span>';
+    if (priority === 'Medium') return '<span class="admin-chip warn">Medium</span>';
+    return '<span class="admin-chip">Suspicious</span>';
+  }
+
+  function trustChip(score) {
+    if (score >= 85) return '<span class="admin-chip ok">' + score + '%</span>';
+    if (score >= 60) return '<span class="admin-chip warn">' + score + '%</span>';
+    return '<span class="admin-chip danger">' + score + '%</span>';
+  }
+
+  function renderOverviewCards() {
+    const wrap = document.getElementById('overview-cards');
+    if (!wrap) return;
+    wrap.innerHTML = dashboardOverviewData.map(function (item) {
+      return '<article class="admin-stat"><div class="admin-stat-label">' + item.label + '</div><div class="admin-stat-value">' + item.value + '</div></article>';
+    }).join('');
+  }
+
+  function renderAiHistory() {
+    const body = document.getElementById('ai-history-body');
+    if (!body) return;
+    body.innerHTML = adminAiHistoryData.map(function (entry) {
+      const aiReason =
+        '<div><strong>Trust Score Reason:</strong> ' + entry.trustScoreReason + '</div>' +
+        '<div style="margin-top: 6px;"><strong>Priority Reason:</strong> ' + entry.priorityReason + '</div>';
+
+      return '<tr>' +
+        '<td>' + entry.incidentTitle + '</td>' +
+        '<td>' + entry.assignedVolunteers.join(', ') + '</td>' +
+        '<td>' + trustChip(entry.trustScore) + '</td>' +
+        '<td>' + priorityChip(entry.priority) + '</td>' +
+        '<td style="max-width: 420px;">' + aiReason + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    renderOverviewCards();
+    renderAiHistory();
+  });
+</script>
+
+<script src="citizen-ui.js"></script>
+<script src="admin.js"></script>
+<script src="admin-analytics.js"></script>
+</body>
+</html>

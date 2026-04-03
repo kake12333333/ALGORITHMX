@@ -744,7 +744,7 @@ body.no-y-overflow { overflow: hidden; }
   color: var(--blue-bright);
 }
 .vp-page { margin-left: 268px; min-height: 100vh; position: relative; }
-.vp-page-inner { padding: 110px 34px 90px; max-width: 1300px; margin: 0 auto; }
+.vp-page-inner { padding: 110px 34px 90px; max-width: 1300px; width: 100%; margin: 0 auto; }
 .vp-page-topbar { position: fixed; top: 24px; right: 24px; z-index: 110; }
 .vp-page-topbar a { text-decoration: none; }
 .vp-logout {
@@ -758,6 +758,33 @@ body.no-y-overflow { overflow: hidden; }
   transition: background .2s, box-shadow .2s, transform .2s;
 }
 .vp-logout:hover { background: rgba(26,111,255,0.15); box-shadow: 0 0 20px rgba(26,111,255,0.25); transform: translateY(-1px); }
+
+.vp-landing-nav {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 140;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid rgba(77, 159, 255, 0.34);
+  background: rgba(2, 8, 24, 0.76);
+  backdrop-filter: blur(10px);
+  color: var(--blue-bright);
+  text-decoration: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  transition: border-color .2s, box-shadow .2s, color .2s, transform .2s;
+}
+
+.vp-landing-nav:hover {
+  border-color: rgba(77, 159, 255, 0.6);
+  color: var(--white);
+  box-shadow: 0 0 18px rgba(26,111,255,0.2);
+  transform: translateY(-1px);
+}
 .vp-home-actions {
   display: flex;
   justify-content: center;
@@ -1090,5 +1117,176 @@ body.no-y-overflow { overflow: hidden; }
   .vp-podium-avatar,
   .vp-podium-rank-1 .vp-podium-avatar { width: 72px; height: 72px; }
   .vp-leaderboard-list li { grid-template-columns: 40px 28px 1fr auto; }
+}
+
+@media (max-width: 1200px) {
+  .vp-page-inner { padding: 92px 24px 84px; }
+  .vp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vp-map { min-height: 520px; }
+}
+
+@media (max-width: 992px) {
+  .vp-sidebar {
+    width: 228px;
+    padding: 20px 16px;
+  }
+
+  .vp-page {
+    margin-left: 228px;
+  }
+
+  .vp-page-inner {
+    padding: 80px 18px 84px;
+  }
+
+  .vp-home-actions {
+    justify-content: flex-start;
+  }
+
+  .vp-chat-shell,
+  .vp-map,
+  .vp-form {
+    max-width: 100%;
+  }
+
+  .vp-media-preview-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .vp-sidebar {
+    position: relative;
+    width: 100%;
+    top: auto;
+    bottom: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 14px 12px;
+    backdrop-filter: blur(10px);
+  }
+
+  .vp-sidebar-brand {
+    margin-bottom: 12px;
+    font-size: 26px;
+  }
+
+  .vp-side-menu {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .vp-sidebar-footer {
+    margin-top: 14px;
+    padding-top: 12px;
+  }
+
+  .vp-side-logout {
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  .vp-page {
+    margin-left: 0;
+  }
+
+  .vp-page-inner {
+    padding: 24px 14px 86px;
+  }
+
+  .vp-dashboard-top,
+  .vp-volunteer-header,
+  .vp-user-card,
+  .vp-alert-meta {
+    width: 100%;
+  }
+
+  .vp-chat-input,
+  .vp-chat-compose {
+    grid-template-columns: 1fr;
+  }
+
+  .vp-chat-input button,
+  .vp-mini-btn {
+    width: 100%;
+  }
+
+  .vp-message,
+  .vp-chat-bubble {
+    max-width: 100%;
+  }
+
+  .vp-location-menu {
+    max-height: 220px;
+  }
+}
+
+@media (max-width: 576px) {
+  .vp-side-menu {
+    grid-template-columns: 1fr;
+  }
+
+  .vp-landing-nav {
+    top: 10px;
+    right: 10px;
+    padding: 7px 10px;
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+
+  .vp-side-link {
+    padding: 10px 10px;
+    font-size: 10px;
+    letter-spacing: 1.4px;
+  }
+
+  .vp-title {
+    font-size: clamp(36px, 14vw, 56px);
+  }
+
+  .vp-subtitle,
+  .vp-card-copy,
+  .vp-ai-copy,
+  .vp-chat-bubble {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .vp-card,
+  .vp-panel,
+  .vp-form-shell,
+  .vp-chat-shell,
+  .vp-map {
+    padding: 14px;
+  }
+
+  .vp-input,
+  .vp-select,
+  .vp-textarea,
+  .vp-upload,
+  .vp-media-drop {
+    padding: 12px;
+  }
+
+  .vp-home-action,
+  .vp-btn,
+  .vp-btn-outline,
+  .vp-form-submit,
+  .vp-btn-secondary {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .vp-media-preview-gallery {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .vp-media-thumb {
+    height: 82px;
+  }
 }
 

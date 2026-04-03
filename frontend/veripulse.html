@@ -101,6 +101,36 @@
     box-shadow: 0 0 20px rgba(26,111,255,0.3);
   }
 
+  .nav-admin-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(77, 159, 255, 0.36);
+    background: rgba(26, 111, 255, 0.1);
+    color: var(--blue-bright);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color .2s, box-shadow .2s, background .2s, transform .2s;
+  }
+
+  .nav-admin-btn:hover {
+    border-color: rgba(77, 159, 255, 0.62);
+    box-shadow: 0 0 16px rgba(26,111,255,0.24);
+    background: rgba(26,111,255,0.18);
+    transform: translateY(-1px);
+  }
+
+  .nav-admin-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   /* ── SECTIONS BASE ── */
   section { position: relative; z-index: 10; }
 
@@ -136,7 +166,7 @@
     opacity: 0; animation: fadeUp .9s .7s ease forwards;
   }
   .hero-actions {
-    margin-top: 52px; display: flex; gap: 20px;
+    margin-top: 52px; display: flex; flex-direction: column; align-items: center; gap: 12px;
     opacity: 0; animation: fadeUp .9s .9s ease forwards;
   }
   .btn-primary {
@@ -162,6 +192,10 @@
     transition: border-color .3s, color .3s;
   }
   .btn-outline:hover { border-color: var(--blue-glow); color: var(--white); }
+
+  .btn-citizen {
+    min-width: 220px;
+  }
 
   .hero-stats {
     margin-top: 80px; display: flex; gap: 60px;
@@ -708,7 +742,13 @@
     font-weight: 600;
   }
 
-  @media (max-width: 980px) {
+  @media (max-width: 1200px) {
+    nav { padding: 20px 30px; }
+    .hero-actions { flex-wrap: wrap; justify-content: center; }
+    .hero-stats { gap: 32px; }
+  }
+
+  @media (max-width: 992px) {
     nav { padding: 18px 20px; }
     .nav-links { display: none; }
     .nav-logo-mark { width: 38px; height: 38px; flex-basis: 38px; }
@@ -719,7 +759,59 @@
     }
   }
 
-  @media (max-width: 560px) {
+  @media (max-width: 768px) {
+    #hero {
+      padding: 110px 16px 76px;
+    }
+
+    .hero-title {
+      font-size: clamp(56px, 14vw, 92px);
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .hero-sub {
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .hero-stats {
+      width: 100%;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 576px) {
+    nav {
+      padding: 14px 12px;
+    }
+
+    .nav-cta {
+      padding: 8px 12px;
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+
+    .nav-admin-btn {
+      width: 32px;
+      height: 32px;
+    }
+
+    .hero-actions {
+      width: 100%;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-primary,
+    .btn-outline {
+      width: 100%;
+      text-align: center;
+      padding: 14px 16px;
+    }
+
     .modal { width: calc(100vw - 24px); padding: 42px 20px 26px; }
   }
 
@@ -755,6 +847,14 @@
   </ul>
   <div class="nav-right">
     <button class="nav-cta" onclick="toggleEmergencyPanel()">Emergency</button>
+    <button class="nav-admin-btn" onclick="window.location.href='auth.html'" aria-label="Admin Login" title="Admin Login">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="8" r="3.2"></circle>
+        <path d="M6 19c0-3 2.5-5 6-5s6 2 6 5"></path>
+        <path d="M19 6.5v2"></path>
+        <path d="M18 7.5h2"></path>
+      </svg>
+    </button>
   </div>
 </nav>
 
@@ -776,15 +876,15 @@
 <!-- ═══════════ HERO ═══════════ -->
 <section id="hero">
   <div class="hero-eyebrow">AI-POWERED CRISIS INTELLIGENCE SYSTEM</div>
-  <h1 class="hero-title" style="white-space: nowrap;">VeriPulse</h1>
+  <h1 class="hero-title">VeriPulse</h1>
   <p class="hero-sub">
    A real-time crisis intelligence platform that verifies
     emergency reports, filters misinformation, and coordinates resources instantly
      during critical situations..
   </p>
   <div class="hero-actions">
-    <button class="btn-primary" onclick="window.location.href='auth.html'">LAUNCH SYSTEM</button>
-    <button class="btn-outline" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">SEE HOW IT WORKS</button>
+    <button class="btn-primary" onclick="window.location.href='report.html'">REPORT EMERGENCY</button>
+    <button class="btn-outline btn-citizen" onclick="window.location.href='citizen.html'">CITIZEN HUB</button>
   </div>
   <div class="hero-stats">
     <div class="stat-item">
@@ -1058,9 +1158,9 @@
 <!-- ═══════════ CTA ═══════════ -->
 <section id="cta">
   <h2 class="cta-title">READY TO RESPOND<br>SMARTER?</h2>
-  <p class="cta-sub">Join VeriPulse today. Register as a citizen, volunteer, or request admin access to protect your community.</p>
+  <p class="cta-sub">Join VeriPulse today. Register as a volunteer and help protect your community.</p>
   <div class="cta-actions">
-    <button class="btn-primary" onclick="window.location.href='auth.html'">JOIN NOW</button>
+    <button class="btn-primary" onclick="window.location.href='volunteer.html?from=landing'">JOIN NOW</button>
     <button class="btn-outline">REQUEST DEMO</button>
   </div>
 </section>
