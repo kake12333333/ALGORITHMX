@@ -53,8 +53,14 @@
           </select>
         </div>
         <div>
-          <label class="vp-form-label">Description</label>
-          <textarea class="vp-textarea" placeholder="Describe what is happening..."></textarea>
+          <label class="vp-form-label" for="incident-description">Description</label>
+          <div class="vp-description-shell">
+            <textarea class="vp-textarea vp-description-textarea" id="incident-description" placeholder="Describe what is happening..."></textarea>
+            <button class="vp-mic-button" id="speech-toggle-btn" type="button" aria-label="Start voice input" aria-pressed="false">
+              <span class="vp-mic-icon" aria-hidden="true">🎤</span>
+            </button>
+          </div>
+          <div class="vp-speech-status" id="speech-status" aria-live="polite"></div>
         </div>
         <div>
           <!-- LOCATION INPUT SECTION -->
@@ -106,7 +112,7 @@
       <div class="vp-report-modal-card">
         <div class="vp-report-modal-header">
           <div class="vp-report-modal-icon">✓</div>
-          <div class="vp-report-modal-title">Report Submitted</div>
+          <div class="vp-report-modal-title">Report submitted successfully</div>
         </div>
         <div class="vp-report-modal-message">
           Your emergency report has been submitted successfully. Our response team is now processing your incident. You can track updates on the dashboard.
@@ -124,7 +130,115 @@
   const locationInput = document.getElementById('location-input');
   const locationMenu = document.getElementById('location-menu');
   const locationBox = document.getElementById('location-box');
+  const descriptionTextarea = document.getElementById('incident-description');
+  const speechToggleBtn = document.getElementById('speech-toggle-btn');
+  const speechStatus = document.getElementById('speech-status');
   let selectedSuggestionIndex = -1;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const speechRecognitionSupported = !!SpeechRecognition;
+  let speechRecognition = null;
+  let speechListening = false;
+  let speechBaseText = '';
+
+  function setSpeechStatus(message, kind = '') {
+    if (!speechStatus) return;
+    speechStatus.textContent = message;
+    speechStatus.className = kind ? `vp-speech-status ${kind}` : 'vp-speech-status';
+  }
+
+  function updateSpeechButtonState(active) {
+    if (!speechToggleBtn) return;
+    speechToggleBtn.classList.toggle('listening', active);
+    speechToggleBtn.setAttribute('aria-pressed', String(active));
+    speechToggleBtn.setAttribute('aria-label', active ? 'Stop voice input' : 'Start voice input');
+  }
+
+  function insertSpeechText(transcript) {
+    if (!descriptionTextarea) return;
+    const trimmedTranscript = transcript.trim();
+    if (!trimmedTranscript) return;
+
+    const existing = speechBaseText.trim();
+    descriptionTextarea.value = existing ? `${existing} ${trimmedTranscript}`.trim() : trimmedTranscript;
+  }
+
+  function stopSpeechRecognition() {
+    if (speechRecognition && speechListening) {
+      speechRecognition.stop();
+    }
+  }
+
+  function startSpeechRecognition() {
+    if (!speechRecognitionSupported) {
+      setSpeechStatus('Microphone input is not supported in this browser.', 'error');
+      return;
+    }
+
+    if (speechListening) {
+      stopSpeechRecognition();
+      return;
+    }
+
+    try {
+      if (!speechRecognition) {
+        speechRecognition = new SpeechRecognition();
+        speechRecognition.lang = 'en-US';
+        speechRecognition.interimResults = true;
+        speechRecognition.continuous = false;
+
+        speechRecognition.onstart = () => {
+          speechListening = true;
+          speechBaseText = descriptionTextarea.value;
+          updateSpeechButtonState(true);
+          setSpeechStatus('Listening... speak your incident description.', 'listening');
+        };
+
+        speechRecognition.onresult = (event) => {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; i += 1) {
+            transcript += event.results[i][0].transcript;
+          }
+          insertSpeechText(transcript);
+        };
+
+        speechRecognition.onerror = (event) => {
+          speechListening = false;
+          updateSpeechButtonState(false);
+
+          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            setSpeechStatus('Microphone permission denied. Allow access to use voice input.', 'error');
+            return;
+          }
+
+          setSpeechStatus('Voice input could not start. Please try again.', 'error');
+        };
+
+        speechRecognition.onend = () => {
+          const wasListening = speechListening;
+          speechListening = false;
+          updateSpeechButtonState(false);
+          if (wasListening) {
+            setSpeechStatus('Voice input stopped.', '');
+          }
+        };
+      }
+
+      speechRecognition.start();
+    } catch (_error) {
+      setSpeechStatus('Voice input is unavailable right now.', 'error');
+      updateSpeechButtonState(false);
+      speechListening = false;
+    }
+  }
+
+  if (!speechRecognitionSupported) {
+    updateSpeechButtonState(false);
+    setSpeechStatus('Microphone input is not supported in this browser.', 'error');
+    if (speechToggleBtn) {
+      speechToggleBtn.disabled = true;
+    }
+  }
 
   const indiaLocations = [
     { name: 'Connaught Place, New Delhi, Delhi, India', kind: 'area' },
@@ -328,6 +442,18 @@
       selectedSuggestionIndex = -1;
     }
   });
+
+  if (speechToggleBtn) {
+    speechToggleBtn.addEventListener('click', startSpeechRecognition);
+  }
+
+  if (descriptionTextarea) {
+    descriptionTextarea.addEventListener('input', () => {
+      if (!speechListening) {
+        speechBaseText = descriptionTextarea.value;
+      }
+    });
+  }
 
   // HANDLE MEDIA UPLOAD
   const mediaInput = document.getElementById('media-input');
@@ -612,6 +738,9 @@
   if (reportSubmitBtn) {
     reportSubmitBtn.addEventListener('click', (event) => {
       event.preventDefault();
+      if (speechListening) {
+        stopSpeechRecognition();
+      }
       openReportModal();
       
       // Auto-close modal after 4 seconds

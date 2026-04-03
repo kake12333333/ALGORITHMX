@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeriPulse — Volunteer Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="citizen.css">
+<link rel="stylesheet" href="volunteer-dashboard.css">
+</head>
+<body>
+<!-- VOLUNTEER DASHBOARD PAGE -->
+<canvas id="bg-canvas"></canvas>
+<canvas id="earth-canvas" width="800" height="800"></canvas>
+<div class="alert-ticker"><div class="ticker-inner" id="ticker"></div></div>
+
+<!-- SIDEBAR SECTION -->
+<aside class="vp-sidebar">
+  <a class="vp-sidebar-brand" href="veripulse.html"><iframe class="vp-sidebar-logo" src="responza_hero_logo_final.html" title="VeriPulse Logo" loading="lazy"></iframe>VeriPulse</a>
+  <div class="vp-side-menu">
+    <a class="vp-side-link" href="citizen.html"><span class="icon">⌂</span>Home</a>
+    <a class="vp-side-link active" href="volunteer-dashboard.html"><span class="icon">▣</span>Dashboard</a>
+    <a class="vp-side-link" href="report.html"><span class="icon">⚠</span>Report Emergency</a>
+    <a class="vp-side-link" href="volunteer.html"><span class="icon">✦</span>Join as Volunteer</a>
+    <a class="vp-side-link" href="chat.html"><span class="icon">◌</span>Chat</a>
+  </div>
+  <div class="vp-sidebar-footer">Volunteer system • live response</div>
+</aside>
+
+<div class="vp-page">
+  <div class="vp-page-topbar">
+    <a class="vp-logout" href="veripulse.html">Logout</a>
+  </div>
+
+  <!-- MAIN CONTENT SECTION -->
+  <main class="vp-page-inner vp-page-enter">
+    <section class="vp-section vp-volunteer-dashboard-section">
+
+      <!-- TOP HEADER -->
+      <header class="vp-volunteer-header">
+        <div>
+          <div class="vp-section-tag">// Volunteer Network</div>
+          <h1 class="vp-volunteer-dashboard-title">Volunteer Hub</h1>
+        </div>
+        <div class="vp-volunteer-status-badge active">
+          <span class="status-dot"></span>
+          <span class="status-text">ACTIVE</span>
+        </div>
+      </header>
+
+      <!-- STATUS CARDS SECTION -->
+      <div class="vp-volunteer-status-grid">
+        <article class="vp-status-card">
+          <div class="vp-card-label">Volunteer Status</div>
+          <div class="vp-card-value">Active</div>
+          <div class="vp-card-icon">✓</div>
+        </article>
+        <article class="vp-status-card">
+          <div class="vp-card-label">Skill Category</div>
+          <div class="vp-card-value" id="skillCategory">Medical & Rescue</div>
+          <div class="vp-card-icon">⚕</div>
+        </article>
+        <article class="vp-status-card">
+          <div class="vp-card-label">Missions Completed</div>
+          <div class="vp-card-value" id="missionsCompleted">0</div>
+          <div class="vp-card-icon">✦</div>
+        </article>
+        <article class="vp-status-card">
+          <div class="vp-card-label">Points Earned</div>
+          <div class="vp-card-value" id="pointsEarned">0</div>
+          <div class="vp-card-icon">★</div>
+        </article>
+      </div>
+
+      <!-- ASSIGNED INCIDENTS SECTION -->
+      <section class="vp-volunteer-section-box">
+        <header class="vp-section-header">
+          <h2 class="vp-subsection-title">Assigned Incidents</h2>
+          <p class="vp-section-subtitle">Nearby incidents matched to your skills</p>
+        </header>
+        <div class="vp-incidents-list" id="assignedIncidents">
+          <!-- Incidents loaded by JavaScript -->
+        </div>
+      </section>
+
+      <!-- NEARBY ALERTS SECTION -->
+      <section class="vp-volunteer-section-box">
+        <header class="vp-section-header">
+          <h2 class="vp-subsection-title">Nearby Active Alerts</h2>
+          <p class="vp-section-subtitle">Available for volunteer response</p>
+        </header>
+        <div class="vp-alerts-grid" id="nearbyAlerts">
+          <!-- Alerts loaded by JavaScript -->
+        </div>
+      </section>
+
+      <!-- REWARDS & RANK SECTION -->
+      <div class="vp-rewards-container">
+        <section class="vp-volunteer-section-box vp-rewards-box">
+          <header class="vp-section-header">
+            <h2 class="vp-subsection-title">Rewards & Rank</h2>
+          </header>
+          <div class="vp-rewards-content">
+            <div class="vp-reward-item">
+              <span class="vp-reward-label">Current Points</span>
+              <span class="vp-reward-value" id="currentPoints">0</span>
+            </div>
+            <div class="vp-reward-item">
+              <span class="vp-reward-label">Rank</span>
+              <span class="vp-reward-value vp-rank-badge" id="currentRank">Cadet</span>
+            </div>
+            <button class="vp-leaderboard-btn">View Leaderboard</button>
+          </div>
+        </section>
+
+        <!-- COMMUNICATION SECTION -->
+        <section class="vp-volunteer-section-box vp-communication-box">
+          <header class="vp-section-header">
+            <h2 class="vp-subsection-title">Coordination Hub</h2>
+          </header>
+          <div class="vp-communication-content">
+            <div class="vp-comm-info">
+              <p>Live communication with incident coordinators</p>
+              <span class="vp-online-indicator"><span class="dot"></span>Coordinators Online</span>
+            </div>
+            <button class="vp-open-chat-btn">Open Chat</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- MISSION HISTORY SECTION -->
+      <section class="vp-volunteer-section-box">
+        <header class="vp-section-header">
+          <h2 class="vp-subsection-title">Mission History</h2>
+          <p class="vp-section-subtitle">Your completed and participated missions</p>
+        </header>
+        <div class="vp-missions-list" id="missionHistory">
+          <!-- Missions loaded by JavaScript -->
+        </div>
+      </section>
+
+    </section>
+  </main>
+</div>
+
+<!-- INCIDENT DETAIL MODAL -->
+<div class="vp-modal-overlay" id="incidentDetailModal">
+  <div class="vp-modal-content vp-incident-modal">
+    <button class="vp-modal-close" id="closeIncidentModal">✕</button>
+    <div id="incidentModalContent">
+      <!-- Populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- ACTION CONFIRMATION MODAL -->
+<div class="vp-modal-overlay" id="actionConfirmModal">
+  <div class="vp-modal-content">
+    <h3 class="vp-modal-title" id="confirmTitle">Accept Mission?</h3>
+    <p class="vp-modal-text" id="confirmText"></p>
+    <div class="vp-modal-actions">
+      <button class="vp-modal-btn-cancel" id="cancelAction">Cancel</button>
+      <button class="vp-modal-btn-confirm" id="confirmAction">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="citizen-ui.js"></script>
+<script>
+  // VOLUNTEER DASHBOARD STATE & DATA
+  const volunteerDashboardState = {
+    volunteer: {
+      name: 'Priya Sharma',
+      id: 'VOL-2024-001',
+      skillCategory: 'Medical & Rescue',
+      status: 'Active',
+      missionsCompleted: 5,
+      pointsEarned: 1250,
+      rank: 'Guardian'
+    },
+    assignedIncidents: [
+      {
+        id: 'INC-001',
+        title: 'Cardiac Arrest - Metro Station',
+        location: 'Andheri West, Mumbai',
+        distance: '0.8 km',
+        timeAgo: '2 min ago',
+        trustScore: 92,
+        priority: 'High',
+        verificationStatus: 'Verified',
+        description: 'Cardiac arrest reported at Andheri West metro station. Person unresponsive.',
+        coordinatorsOnSite: 2
+      },
+      {
+        id: 'INC-002',
+        title: 'Multiple Injuries - Road Accident',
+        location: 'Bandra East, Mumbai',
+        distance: '1.2 km',
+        timeAgo: '5 min ago',
+        trustScore: 88,
+        priority: 'High',
+        verificationStatus: 'Verified',
+        description: 'Two-vehicle collision with 3 injured persons. Traffic blocked.',
+        coordinatorsOnSite: 1
+      }
+    ],
+    nearbyAlerts: [
+      {
+        id: 'ALT-001',
+        title: 'Medical Assistance Needed',
+        location: 'Powai, Mumbai',
+        distance: '1.5 km',
+        priority: 'Medium',
+        timeAgo: '3 min ago'
+      },
+      {
+        id: 'ALT-002',
+        title: 'Fire Alarm - Residential Building',
+        location: 'Kurla, Mumbai',
+        distance: '2.1 km',
+        priority: 'High',
+        timeAgo: '8 min ago'
+      },
+      {
+        id: 'ALT-003',
+        title: 'Search & Rescue Request',
+        location: 'Thane, Mumbai',
+        distance: '3.2 km',
+        priority: 'Medium',
+        timeAgo: '12 min ago'
+      }
+    ],
+    missionHistory: [
+      {
+        id: 'MISS-001',
+        title: 'Medical Aid - Diabetic Emergency',
+        location: 'Dadar, Mumbai',
+        status: 'Completed',
+        date: '2 days ago',
+        duration: '45 min',
+        pointsEarned: 250
+      },
+      {
+        id: 'MISS-002',
+        title: 'First Aid - Minor Injury',
+        location: 'Sion, Mumbai',
+        status: 'Completed',
+        date: '5 days ago',
+        duration: '20 min',
+        pointsEarned: 100
+      },
+      {
+        id: 'MISS-003',
+        title: 'Community Alert Distribution',
+        location: 'Navi Mumbai',
+        status: 'Completed',
+        date: '1 week ago',
+        duration: '1h 30m',
+        pointsEarned: 200
+      }
+    ]
+  };
+
+  // INITIALIZE PAGE
+  document.addEventListener('DOMContentLoaded', function() {
+    updateStatusCards();
+    renderAssignedIncidents();
+    renderNearbyAlerts();
+    renderMissionHistory();
+    setupEventListeners();
+  });
+
+  function updateStatusCards() {
+    const v = volunteerDashboardState.volunteer;
+    document.getElementById('skillCategory').textContent = v.skillCategory;
+    document.getElementById('missionsCompleted').textContent = v.missionsCompleted;
+    document.getElementById('pointsEarned').textContent = v.pointsEarned;
+    document.getElementById('currentPoints').textContent = v.pointsEarned;
+    document.getElementById('currentRank').textContent = v.rank;
+  }
+
+  function getPriorityClass(priority) {
+    const p = priority.toLowerCase();
+    if (p === 'high') return 'priority-high';
+    if (p === 'medium') return 'priority-medium';
+    return 'priority-low';
+  }
+
+  function renderAssignedIncidents() {
+    const container = document.getElementById('assignedIncidents');
+    const incidents = volunteerDashboardState.assignedIncidents;
+
+    if (incidents.length === 0) {
+      container.innerHTML = '<p class="vp-empty-state">No assigned incidents at this time</p>';
+      return;
+    }
+
+    container.innerHTML = incidents.map(incident => `
+      <article class="vp-incident-card ${getPriorityClass(incident.priority)}">
+        <div class="vp-incident-header">
+          <div class="vp-incident-title-group">
+            <h3 class="vp-incident-title">${incident.title}</h3>
+            <span class="vp-priority-badge ${getPriorityClass(incident.priority)}">${incident.priority}</span>
+          </div>
+          <span class="vp-verification-status ${incident.verificationStatus.toLowerCase()}">${incident.verificationStatus}</span>
+        </div>
+        <div class="vp-incident-meta">
+          <span><strong>Location:</strong> ${incident.location}</span>
+          <span><strong>Distance:</strong> ${incident.distance}</span>
+          <span><strong>Time:</strong> ${incident.timeAgo}</span>
+          <span><strong>Trust Score:</strong> ${incident.trustScore}%</span>
+        </div>
+        <div class="vp-incident-footer">
+          <button class="vp-btn-secondary" onclick="showIncidentDetails('${incident.id}')">View Details</button>
+          <button class="vp-btn-primary" onclick="acceptMission('${incident.id}', '${incident.title}')">Accept Mission</button>
+        </div>
+      </article>
+    `).join('');
+  }
+
+  function renderNearbyAlerts() {
+    const container = document.getElementById('nearbyAlerts');
+    const alerts = volunteerDashboardState.nearbyAlerts;
+
+    container.innerHTML = alerts.map(alert => `
+      <div class="vp-alert-card ${getPriorityClass(alert.priority)}">
+        <div class="vp-alert-priority-dot ${getPriorityClass(alert.priority)}"></div>
+        <div class="vp-alert-content">
+          <h4 class="vp-alert-title">${alert.title}</h4>
+          <p class="vp-alert-location">${alert.location}</p>
+          <div class="vp-alert-info">
+            <span>${alert.distance}</span>
+            <span class="vp-alert-time">${alert.timeAgo}</span>
+          </div>
+        </div>
+        <span class="vp-alert-priority-label ${getPriorityClass(alert.priority)}">${alert.priority}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderMissionHistory() {
+    const container = document.getElementById('missionHistory');
+    const missions = volunteerDashboardState.missionHistory;
+
+    container.innerHTML = missions.map(mission => `
+      <div class="vp-mission-item">
+        <div class="vp-mission-icon">✓</div>
+        <div class="vp-mission-details">
+          <h4 class="vp-mission-title">${mission.title}</h4>
+          <p class="vp-mission-location">${mission.location}</p>
+          <div class="vp-mission-meta">
+            <span>${mission.date}</span>
+            <span>•</span>
+            <span>${mission.duration}</span>
+            <span>•</span>
+            <span class="vp-mission-points">+${mission.pointsEarned} pts</span>
+          </div>
+        </div>
+        <span class="vp-mission-status">${mission.status}</span>
+      </div>
+    `).join('');
+  }
+
+  function showIncidentDetails(incidentId) {
+    const incident = volunteerDashboardState.assignedIncidents.find(i => i.id === incidentId);
+    if (!incident) return;
+
+    const modalContent = document.getElementById('incidentModalContent');
+    modalContent.innerHTML = `
+      <h3 class="vp-modal-title">${incident.title}</h3>
+      <div class="vp-modal-details">
+        <p><strong>Location:</strong> ${incident.location}</p>
+        <p><strong>Distance:</strong> ${incident.distance}</p>
+        <p><strong>Time Reported:</strong> ${incident.timeAgo}</p>
+        <p><strong>Verification:</strong> <span class="vp-verification-status ${incident.verificationStatus.toLowerCase()}">${incident.verificationStatus}</span></p>
+        <p><strong>Trust Score:</strong> ${incident.trustScore}%</p>
+        <p><strong>Coordinators On-Site:</strong> ${incident.coordinatorsOnSite}</p>
+        <p><strong>Description:</strong></p>
+        <p class="vp-modal-description">${incident.description}</p>
+      </div>
+      <div class="vp-modal-actions">
+        <button class="vp-modal-btn-secondary" id="closeDetailsBtn">Close</button>
+        <button class="vp-modal-btn-confirm" onclick="acceptMission('${incident.id}', '${incident.title}')">Accept Mission</button>
+      </div>
+    `;
+
+    const modal = document.getElementById('incidentDetailModal');
+    modal.classList.add('active');
+
+    document.getElementById('closeDetailsBtn').addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+  }
+
+  function acceptMission(incidentId, incidentTitle) {
+    const confirmModal = document.getElementById('actionConfirmModal');
+    document.getElementById('confirmTitle').textContent = 'Accept Mission?';
+    document.getElementById('confirmText').textContent = `You are accepting: ${incidentTitle}`;
+
+    confirmModal.classList.add('active');
+
+    document.getElementById('confirmAction').onclick = () => {
+      completeAcceptMission(incidentId);
+      confirmModal.classList.remove('active');
+    };
+
+    document.getElementById('cancelAction').onclick = () => {
+      confirmModal.classList.remove('active');
+    };
+  }
+
+  function completeAcceptMission(incidentId) {
+    const incident = volunteerDashboardState.assignedIncidents.find(i => i.id === incidentId);
+    if (incident) {
+      console.log('Mission accepted:', incidentId);
+      // Backend API call would go here
+      // For now, just show confirmation
+      const successMsg = document.createElement('div');
+      successMsg.className = 'vp-toast-notification';
+      successMsg.textContent = `✓ Mission accepted: ${incident.title}`;
+      document.body.appendChild(successMsg);
+      setTimeout(() => successMsg.remove(), 3000);
+    }
+  }
+
+  function setupEventListeners() {
+    // Close modals
+    document.getElementById('closeIncidentModal').addEventListener('click', () => {
+      document.getElementById('incidentDetailModal').classList.remove('active');
+    });
+
+    // Leaderboard button
+    document.querySelector('.vp-leaderboard-btn').addEventListener('click', () => {
+      console.log('Navigate to leaderboard...');
+      // Future: navigate to leaderboard page or open modal
+    });
+
+    // Open chat button
+    document.querySelector('.vp-open-chat-btn').addEventListener('click', () => {
+      window.location.href = 'chat.html';
+    });
+
+    // Close modals on overlay click
+    const modals = document.querySelectorAll('.vp-modal-overlay');
+    modals.forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+        }
+      });
+    });
+  }
+</script>
+</body>
+</html>

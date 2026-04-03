@@ -5,6 +5,88 @@
   padding-top: 0;
 }
 
+.vp-description-shell {
+  position: relative;
+}
+
+.vp-description-textarea {
+  padding-right: 58px;
+  min-height: 160px;
+  resize: vertical;
+}
+
+.vp-mic-button {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(77, 159, 255, 0.35);
+  background: rgba(5, 21, 53, 0.8);
+  color: var(--blue-bright);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(26, 111, 255, 0.18);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, color .2s ease, background .2s ease;
+}
+
+.vp-mic-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 255, 157, 0.35);
+}
+
+.vp-mic-button.listening {
+  background: rgba(0, 255, 157, 0.12);
+  border-color: rgba(0, 255, 157, 0.55);
+  color: var(--green-glow);
+  box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.35), 0 0 18px rgba(0, 255, 157, 0.35);
+  animation: micPulse 1.4s ease-in-out infinite;
+}
+
+.vp-mic-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
+}
+
+.vp-mic-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.vp-speech-status {
+  margin-top: 8px;
+  min-height: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--white-dim);
+}
+
+.vp-speech-status.listening {
+  color: var(--green-glow);
+}
+
+.vp-speech-status.error {
+  color: var(--red-alert);
+}
+
+@keyframes micPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.28), 0 0 18px rgba(0, 255, 157, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 255, 157, 0), 0 0 18px rgba(0, 255, 157, 0.42);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0), 0 0 18px rgba(0, 255, 157, 0.3);
+  }
+}
+
 /* FORM ACTIONS ROW */
 .vp-report-actions {
   margin-top: 20px;
@@ -101,6 +183,15 @@
   .vp-camera-controls .vp-action-assign {
     width: 100%;
     text-align: center;
+  }
+
+  .vp-description-textarea {
+    padding-right: 54px;
+  }
+
+  .vp-mic-button {
+    right: 12px;
+    top: 12px;
   }
 }
 

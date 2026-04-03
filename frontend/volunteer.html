@@ -72,16 +72,38 @@
     </section>
   </main>
 </div>
+
+<!-- SUCCESS MODAL POPUP -->
+<div class="vp-modal-overlay" id="successModal">
+  <div class="vp-modal-content">
+    <div class="vp-modal-icon">✓</div>
+    <h2 class="vp-modal-title">Volunteer Registration Submitted Successfully</h2>
+    <p class="vp-modal-status">Status: <span class="vp-status-pending">Pending Approval</span></p>
+    <button class="vp-modal-button" id="dashboardBtn">Go to Dashboard</button>
+  </div>
+</div>
+
 <script src="citizen-ui.js"></script>
 <script>
   // THIS IS VOLUNTEER PAGE SCRIPT
   // HANDLE VOLUNTEER FORM SUBMISSION STATE
   const joinBtn = document.getElementById('join-btn');
   const volunteerState = document.getElementById('volunteer-state');
+  const successModal = document.getElementById('successModal');
+  const dashboardBtn = document.getElementById('dashboardBtn');
+
+  // Show modal instead of state text
   joinBtn.addEventListener('click', () => {
-    volunteerState.classList.add('active');
+    // Show the success modal
+    successModal.classList.add('active');
     joinBtn.style.display = 'none';
-    volunteerState.textContent = 'You are now a Volunteer';
+    volunteerState.style.display = 'none';
+    document.body.classList.add('no-y-overflow');
+  });
+
+  // Redirect to volunteer dashboard on button click
+  dashboardBtn.addEventListener('click', () => {
+    window.location.href = 'volunteer-dashboard.html';
   });
 </script>
 </body>
