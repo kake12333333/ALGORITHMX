@@ -40,10 +40,17 @@
         <div>
           <label class="vp-form-label" for="incident-description">Description</label>
           <div class="vp-description-shell">
+            <div class="vp-description-tools" id="speech-tools">
+              <button class="vp-mic-button" id="speech-toggle-btn" type="button" aria-label="Start voice input" aria-pressed="false">
+                <span class="vp-mic-icon" aria-hidden="true">🎤</span>
+              </button>
+              <div class="vp-mic-copy">
+                <div class="vp-mic-title">Use Mic to Report Incident</div>
+                <div class="vp-mic-hint">Tap once to start voice reporting quickly</div>
+              </div>
+              <div class="vp-mic-live-dot" aria-hidden="true"></div>
+            </div>
             <textarea class="vp-textarea vp-description-textarea" id="incident-description" placeholder="Describe what is happening..."></textarea>
-            <button class="vp-mic-button" id="speech-toggle-btn" type="button" aria-label="Start voice input" aria-pressed="false">
-              <span class="vp-mic-icon" aria-hidden="true">🎤</span>
-            </button>
           </div>
           <div class="vp-speech-status" id="speech-status" aria-live="polite"></div>
         </div>
@@ -125,6 +132,7 @@
   const descriptionTextarea = document.getElementById('incident-description');
   const speechToggleBtn = document.getElementById('speech-toggle-btn');
   const speechStatus = document.getElementById('speech-status');
+  const speechTools = document.getElementById('speech-tools');
   let selectedSuggestionIndex = -1;
 
   const permissionCache = {
@@ -165,6 +173,9 @@
   function updateSpeechButtonState(active) {
     if (!speechToggleBtn) return;
     speechToggleBtn.classList.toggle('listening', active);
+    if (speechTools) {
+      speechTools.classList.toggle('listening', active);
+    }
     speechToggleBtn.setAttribute('aria-pressed', String(active));
     speechToggleBtn.setAttribute('aria-label', active ? 'Stop voice input' : 'Start voice input');
   }
