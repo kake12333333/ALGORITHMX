@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeriPulse — Volunteer Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="citizen.css">
+<link rel="stylesheet" href="volunteer-approved-dashboard.css">
+</head>
+<body>
+<!-- THIS IS APPROVED VOLUNTEER DASHBOARD PAGE -->
+<canvas id="bg-canvas"></canvas>
+<canvas id="earth-canvas" width="800" height="800"></canvas>
+<div class="alert-ticker"><div class="ticker-inner" id="ticker"></div></div>
+
+<!-- SIDEBAR SECTION -->
+<aside class="vp-sidebar">
+  <a class="vp-sidebar-brand" href="veripulse.html"><iframe class="vp-sidebar-logo" src="responza_hero_logo_final.html" title="VeriPulse Logo" loading="lazy"></iframe>VeriPulse</a>
+  <div class="vp-side-menu">
+    <a class="vp-side-link" href="citizen.html"><span class="icon">⌂</span>Home</a>
+    <a class="vp-side-link" href="dashboard.html"><span class="icon">▣</span>Dashboard</a>
+    <a class="vp-side-link" href="report.html"><span class="icon">⚠</span>Report Emergency</a>
+    <a class="vp-side-link active" href="volunteer-approved-dashboard.html"><span class="icon">✦</span>Volunteer Hub</a>
+    <a class="vp-side-link" href="chat.html"><span class="icon">◌</span>Chat</a>
+  </div>
+  <div class="vp-sidebar-footer">Volunteer system • active responder</div>
+  <a class="vp-side-link vp-side-logout" href="veripulse.html"><span class="icon">⎋</span>Logout</a>
+</aside>
+
+<div class="vp-page">
+  <!-- MAIN CONTENT SECTION -->
+  <main class="vp-page-inner vp-page-enter">
+    
+    <!-- HERO SECTION -->
+    <section class="vp-hero vp-hero-compact">
+      <div class="vp-eyebrow">Volunteer Network</div>
+      <h1 class="vp-title">VOLUNTEER HUB</h1>
+      <p class="vp-subtitle">Active responder status. Coordinate with incident command, manage assignments, and contribute to community safety.</p>
+    </section>
+
+    <!-- VOLUNTEER STATUS CARD -->
+    <section class="vp-section vp-vol-status-section">
+      <div class="vp-status-card vp-status-active">
+        <div class="vp-status-indicator"></div>
+        <div class="vp-status-content">
+          <h2 class="vp-status-title">Active Volunteer Status</h2>
+          <p class="vp-status-text">Approved and ready to respond</p>
+          <div class="vp-status-meta">
+            <span class="vp-meta-item"><span class="label">Role:</span> <span class="value">Certified Responder</span></span>
+            <span class="vp-meta-item"><span class="label">Response Radius:</span> <span class="value">25 km</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASSIGNED INCIDENTS SECTION -->
+    <section class="vp-section">
+      <div class="vp-section-header">
+        <div class="vp-section-tag">// Active Response</div>
+        <h2 class="vp-section-title">ASSIGNED INCIDENTS</h2>
+      </div>
+      <div class="vp-incidents-grid" id="assigned-incidents">
+        <article class="vp-incident-card">
+          <div class="vp-incident-header">
+            <span class="vp-incident-type high">HIGH PRIORITY</span>
+            <span class="vp-incident-time">2 mins ago</span>
+          </div>
+          <h3 class="vp-incident-title">Medical Emergency — Sector 12</h3>
+          <p class="vp-incident-description">Cardiac response required. Assigned based on certification.</p>
+          <div class="vp-incident-meta">
+            <span class="vp-meta-loc">📍 2.4 km away</span>
+            <span class="vp-meta-status">Status: Assigned</span>
+          </div>
+          <button class="vp-incident-action">Accept & Respond</button>
+        </article>
+
+        <article class="vp-incident-card">
+          <div class="vp-incident-header">
+            <span class="vp-incident-type medium">MEDIUM PRIORITY</span>
+            <span class="vp-incident-time">8 mins ago</span>
+          </div>
+          <h3 class="vp-incident-title">Logistics Support — Distribution Hub</h3>
+          <p class="vp-incident-description">Supply coordination for affected area. Volunteer transport available.</p>
+          <div class="vp-incident-meta">
+            <span class="vp-meta-loc">📍 5.1 km away</span>
+            <span class="vp-meta-status">Status: Available</span>
+          </div>
+          <button class="vp-incident-action">View Details</button>
+        </article>
+      </div>
+      <p class="vp-no-incidents" style="display: none;">No active assignments. You're on standby.</p>
+    </section>
+
+    <!-- NEARBY ALERTS SECTION -->
+    <section class="vp-section">
+      <div class="vp-section-header">
+        <div class="vp-section-tag">// Local Area</div>
+        <h2 class="vp-section-title">NEARBY ALERTS</h2>
+      </div>
+      <div class="vp-alerts-list" id="nearby-alerts">
+        <div class="vp-alert-item critical">
+          <span class="vp-alert-icon">⚠</span>
+          <div class="vp-alert-content">
+            <h4 class="vp-alert-title">Traffic Jam — Highway 5</h4>
+            <p class="vp-alert-meta">3.2 km away • 45 mins ago • 150+ vehicles</p>
+          </div>
+        </div>
+
+        <div class="vp-alert-item warning">
+          <span class="vp-alert-icon">◆</span>
+          <div class="vp-alert-content">
+            <h4 class="vp-alert-title">Air Quality Alert</h4>
+            <p class="vp-alert-meta">Sector 9 • Moderate AQI 180 • Health advisory</p>
+          </div>
+        </div>
+
+        <div class="vp-alert-item info">
+          <span class="vp-alert-icon">•</span>
+          <div class="vp-alert-content">
+            <h4 class="vp-alert-title">Event Coverage Request</h4>
+            <p class="vp-alert-meta">Marathon Day Support • 12 km away • Volunteers needed</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VOLUNTEER STATS SECTION -->
+    <section class="vp-section vp-vol-stats-section">
+      <div class="vp-section-header">
+        <div class="vp-section-tag">// Performance</div>
+        <h2 class="vp-section-title">YOUR STATS & POINTS</h2>
+      </div>
+      <div class="vp-stats-grid">
+        <div class="vp-stat-card">
+          <div class="vp-stat-value">1,850</div>
+          <div class="vp-stat-label">Points Earned</div>
+          <p class="vp-stat-desc">Community contribution score</p>
+        </div>
+        <div class="vp-stat-card">
+          <div class="vp-stat-value">12</div>
+          <div class="vp-stat-label">Incidents Completed</div>
+          <p class="vp-stat-desc">Active responses & support</p>
+        </div>
+        <div class="vp-stat-card">
+          <div class="vp-stat-value">4.8</div>
+          <div class="vp-stat-label">Rating</div>
+          <p class="vp-stat-desc">Community feedback score</p>
+        </div>
+        <div class="vp-stat-card">
+          <div class="vp-stat-value">Level 3</div>
+          <div class="vp-stat-label">Certification</div>
+          <p class="vp-stat-desc">Advanced responder tier</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD SECTION -->
+    <section class="vp-section vp-leaderboard-section">
+      <div class="vp-section-header">
+        <div class="vp-section-tag">// Leaderboard</div>
+        <h2 class="vp-section-title">TOP VOLUNTEERS THIS WEEK</h2>
+      </div>
+      <div class="vp-leaderboard-table">
+        <div class="vp-leaderboard-row vp-leaderboard-header">
+          <span class="vp-rank">Rank</span>
+          <span class="vp-name">Name</span>
+          <span class="vp-score">Points</span>
+          <span class="vp-tier">Tier</span>
+        </div>
+        <div class="vp-leaderboard-row">
+          <span class="vp-rank">1</span>
+          <span class="vp-name">Priya Kumar</span>
+          <span class="vp-score">2,340 pts</span>
+          <span class="vp-tier tier-gold">Gold</span>
+        </div>
+        <div class="vp-leaderboard-row">
+          <span class="vp-rank">2</span>
+          <span class="vp-name">Rajesh Patel</span>
+          <span class="vp-score">2,180 pts</span>
+          <span class="vp-tier tier-silver">Silver</span>
+        </div>
+        <div class="vp-leaderboard-row">
+          <span class="vp-rank">3</span>
+          <span class="vp-name">You (Aarav)</span>
+          <span class="vp-score">1,850 pts</span>
+          <span class="vp-tier tier-bronze">Bronze</span>
+        </div>
+        <div class="vp-leaderboard-row">
+          <span class="vp-rank">4</span>
+          <span class="vp-name">Neha Singh</span>
+          <span class="vp-score">1,720 pts</span>
+          <span class="vp-tier tier-standard">Standard</span>
+        </div>
+        <div class="vp-leaderboard-row">
+          <span class="vp-rank">5</span>
+          <span class="vp-name">Arun Verma</span>
+          <span class="vp-score">1,560 pts</span>
+          <span class="vp-tier tier-standard">Standard</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="citizen-ui.js"></script>
+<script>
+  // THIS IS APPROVED VOLUNTEER DASHBOARD PAGE SCRIPT
+  // Initialize volunteer dashboard features
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize background animations and interactions
+    initializeVolunteerDashboard();
+  });
+
+  function initializeVolunteerDashboard() {
+    // Add event listeners to incident action buttons
+    const incidentButtons = document.querySelectorAll('.vp-incident-action');
+    incidentButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const incidentCard = this.closest('.vp-incident-card');
+        const incidentTitle = incidentCard.querySelector('.vp-incident-title').textContent;
+        console.log('Incident action triggered:', incidentTitle);
+        // Show confirmation or update UI
+        this.textContent = 'Response Initiated';
+        this.disabled = true;
+      });
+    });
+
+    // Add hover effects to alerts
+    const alertItems = document.querySelectorAll('.vp-alert-item');
+    alertItems.forEach(alert => {
+      alert.addEventListener('click', function() {
+        console.log('Alert clicked');
+        this.style.opacity = '0.7';
+        setTimeout(() => {
+          this.style.opacity = '1';
+        }, 300);
+      });
+    });
+  }
+</script>
+</body>
+</html>

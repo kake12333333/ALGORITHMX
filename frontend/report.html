@@ -25,12 +25,10 @@
     <a class="vp-side-link" href="chat.html"><span class="icon">◌</span>Chat</a>
   </div>
   <div class="vp-sidebar-footer">Citizen system • live response</div>
+  <a class="vp-side-link vp-side-logout" href="veripulse.html"><span class="icon">⎋</span>Logout</a>
 </aside>
 
 <div class="vp-page">
-  <div class="vp-page-topbar">
-    <a class="vp-logout" href="veripulse.html">Logout</a>
-  </div>
   <!-- MAIN CONTENT SECTION -->
   <main class="vp-page-inner vp-page-enter">
     <section class="vp-section vp-report-section">
@@ -43,7 +41,7 @@
       <div class="vp-form-grid">
         <div>
           <label class="vp-form-label">Type</label>
-          <select class="vp-select">
+          <select class="vp-select" id="incident-type">
             <option>Fire</option>
             <option>Medical</option>
             <option>Crime</option>
@@ -53,16 +51,26 @@
           </select>
         </div>
         <div>
-          <label class="vp-form-label">Description</label>
-          <textarea class="vp-textarea" placeholder="Describe what is happening..."></textarea>
+          <label class="vp-form-label" for="incident-description">Description</label>
+          <div class="vp-description-shell">
+            <textarea class="vp-textarea vp-description-textarea" id="incident-description" placeholder="Describe what is happening..."></textarea>
+            <button class="vp-mic-button" id="speech-toggle-btn" type="button" aria-label="Start voice input" aria-pressed="false">
+              <span class="vp-mic-icon" aria-hidden="true">🎤</span>
+            </button>
+          </div>
+          <div class="vp-speech-status" id="speech-status" aria-live="polite"></div>
         </div>
         <div>
           <!-- LOCATION INPUT SECTION -->
           <label class="vp-form-label">Location</label>
           <div class="vp-location-box" id="location-box">
-            <input class="vp-input vp-location-input" id="location-input" type="text" placeholder="Search city, area, or landmark..." autocomplete="off">
+            <div class="vp-location-input-row">
+              <input class="vp-input vp-location-input" id="location-input" type="text" placeholder="Search city, sector, road, area, village, or landmark..." autocomplete="off">
+              <button class="vp-location-current-btn" id="current-location-btn" type="button">Use Current Location</button>
+            </div>
             <div class="vp-location-menu" id="location-menu" role="listbox" aria-label="Location suggestions"></div>
           </div>
+          <div class="vp-location-status" id="location-status" aria-live="polite"></div>
         </div>
         <div>
           <!-- MEDIA UPLOAD SECTION -->
@@ -73,7 +81,7 @@
                 <div class="vp-upload-label">Image Or Video</div>
                 <div class="vp-upload-hint">Drag & drop media or upload from your device</div>
               </div>
-              <input id="media-input" type="file" accept="image/*,video/*">
+              <input id="media-input" type="file" accept="image/*,video/*" multiple>
               <span class="vp-upload-button">Upload From Device</span>
             </label>
             <button class="vp-media-drop vp-media-capture-trigger" id="camera-open-btn" type="button">
@@ -95,6 +103,7 @@
               </div>
             </div>
           </div>
+          <div class="vp-media-status" id="media-status" aria-live="polite"></div>
           <div class="vp-media-preview" id="media-preview" aria-live="polite"></div>
         </div>
       </div>
@@ -106,12 +115,12 @@
       <div class="vp-report-modal-card">
         <div class="vp-report-modal-header">
           <div class="vp-report-modal-icon">✓</div>
-          <div class="vp-report-modal-title">Report Submitted</div>
+          <div class="vp-report-modal-title">Report submitted successfully</div>
         </div>
         <div class="vp-report-modal-message">
           Your emergency report has been submitted successfully. Our response team is now processing your incident. You can track updates on the dashboard.
         </div>
-        <button class="vp-report-modal-close" id="report-modal-close" type="button">Close</button>
+        <button class="vp-report-modal-close" id="report-modal-close" type="button">OK</button>
       </div>
     </div>
     </section>
@@ -124,112 +133,270 @@
   const locationInput = document.getElementById('location-input');
   const locationMenu = document.getElementById('location-menu');
   const locationBox = document.getElementById('location-box');
+  const locationStatus = document.getElementById('location-status');
+  const currentLocationBtn = document.getElementById('current-location-btn');
+  const incidentTypeSelect = document.getElementById('incident-type');
+  const descriptionTextarea = document.getElementById('incident-description');
+  const speechToggleBtn = document.getElementById('speech-toggle-btn');
+  const speechStatus = document.getElementById('speech-status');
   let selectedSuggestionIndex = -1;
 
-  const indiaLocations = [
-    { name: 'Connaught Place, New Delhi, Delhi, India', kind: 'area' },
-    { name: 'India Gate, New Delhi, Delhi, India', kind: 'landmark' },
-    { name: 'Chandni Chowk, Old Delhi, Delhi, India', kind: 'market' },
-    { name: 'Karol Bagh, New Delhi, Delhi, India', kind: 'area' },
-    { name: 'Bandra Kurla Complex, Mumbai, Maharashtra, India', kind: 'business district' },
-    { name: 'Andheri West, Mumbai, Maharashtra, India', kind: 'area' },
-    { name: 'Linking Road, Bandra, Mumbai, Maharashtra, India', kind: 'street' },
-    { name: 'Powai, Mumbai, Maharashtra, India', kind: 'area' },
-    { name: 'Marine Drive, Mumbai, Maharashtra, India', kind: 'landmark' },
-    { name: 'Dharavi, Mumbai, Maharashtra, India', kind: 'area' },
-    { name: 'MG Road, Bengaluru, Karnataka, India', kind: 'street' },
-    { name: 'Whitefield, Bengaluru, Karnataka, India', kind: 'area' },
-    { name: 'Koramangala 5th Block, Bengaluru, Karnataka, India', kind: 'area' },
-    { name: 'Brigade Road, Bengaluru, Karnataka, India', kind: 'street' },
-    { name: 'Commercial Street, Bengaluru, Karnataka, India', kind: 'street' },
-    { name: 'Hitech City, Hyderabad, Telangana, India', kind: 'area' },
-    { name: 'Charminar, Hyderabad, Telangana, India', kind: 'landmark' },
-    { name: 'Banjara Hills Road No 12, Hyderabad, Telangana, India', kind: 'street' },
-    { name: 'Kondapur, Hyderabad, Telangana, India', kind: 'area' },
-    { name: 'Park Street, Kolkata, West Bengal, India', kind: 'street' },
-    { name: 'Howrah Station, Kolkata, West Bengal, India', kind: 'landmark' },
-    { name: 'Salt Lake Sector V, Kolkata, West Bengal, India', kind: 'area' },
-    { name: 'T Nagar, Chennai, Tamil Nadu, India', kind: 'area' },
-    { name: 'Pondy Bazaar, Chennai, Tamil Nadu, India', kind: 'market' },
-    { name: 'Anna Salai, Chennai, Tamil Nadu, India', kind: 'street' },
-    { name: 'Lulu Mall, Kochi, Kerala, India', kind: 'shop' },
-    { name: 'MG Road, Kochi, Kerala, India', kind: 'street' },
-    { name: 'Civil Lines, Jaipur, Rajasthan, India', kind: 'area' },
-    { name: 'Johari Bazaar, Jaipur, Rajasthan, India', kind: 'market' },
-    { name: 'Hazratganj, Lucknow, Uttar Pradesh, India', kind: 'area' },
-    { name: 'Aminabad, Lucknow, Uttar Pradesh, India', kind: 'market' },
-    { name: 'Godowlia Chowk, Varanasi, Uttar Pradesh, India', kind: 'area' },
-    { name: 'Assi Ghat, Varanasi, Uttar Pradesh, India', kind: 'landmark' },
-    { name: 'Katra, Prayagraj, Uttar Pradesh, India', kind: 'area' },
-    { name: 'Sector 18 Market, Noida, Uttar Pradesh, India', kind: 'market' },
-    { name: 'Raj Nagar Extension, Ghaziabad, Uttar Pradesh, India', kind: 'area' },
-    { name: 'Sectors 14 Market, Gurugram, Haryana, India', kind: 'market' },
-    { name: 'Cyber Hub, Gurugram, Haryana, India', kind: 'landmark' },
-    { name: 'Elante Mall, Chandigarh, Chandigarh, India', kind: 'shop' },
-    { name: 'Laxmi Road, Pune, Maharashtra, India', kind: 'street' },
-    { name: 'Hinjawadi Phase 2, Pune, Maharashtra, India', kind: 'area' },
-    { name: 'Sayajigunj, Vadodara, Gujarat, India', kind: 'area' },
-    { name: 'Law Garden Road, Ahmedabad, Gujarat, India', kind: 'street' },
-    { name: 'Lal Darwaja, Ahmedabad, Gujarat, India', kind: 'market' },
-    { name: 'Rajwada, Indore, Madhya Pradesh, India', kind: 'landmark' },
-    { name: 'Vijay Nagar, Indore, Madhya Pradesh, India', kind: 'area' },
-    { name: 'Chowk Bazaar, Bhopal, Madhya Pradesh, India', kind: 'market' },
-    { name: 'Main Road, Ranchi, Jharkhand, India', kind: 'street' },
-    { name: 'Kanke Road, Ranchi, Jharkhand, India', kind: 'street' },
-    { name: 'Fraser Road, Patna, Bihar, India', kind: 'street' },
-    { name: 'Boring Road, Patna, Bihar, India', kind: 'area' },
-    { name: 'Fancy Bazaar, Guwahati, Assam, India', kind: 'market' },
-    { name: 'GS Road, Guwahati, Assam, India', kind: 'street' },
-    { name: 'Mall Road, Shimla, Himachal Pradesh, India', kind: 'street' },
-    { name: 'Dalhousie Chowk, Kolkata, West Bengal, India', kind: 'area' },
-    { name: 'Panjrapole Char Rasta, Ahmedabad, Gujarat, India', kind: 'landmark' },
-    { name: 'Malleswaram 8th Cross, Bengaluru, Karnataka, India', kind: 'street' },
-    { name: 'Bada Bazaar, Gangtok, Sikkim, India', kind: 'market' },
-    { name: 'MG Marg, Gangtok, Sikkim, India', kind: 'street' },
-    { name: 'Nongpoh Bazaar, Ri-Bhoi, Meghalaya, India', kind: 'town' },
-    { name: 'Aizawl Main Market, Aizawl, Mizoram, India', kind: 'market' },
-    { name: 'Itanagar Market, Itanagar, Arunachal Pradesh, India', kind: 'market' },
-    { name: 'Kohima Local Ground, Kohima, Nagaland, India', kind: 'landmark' },
-    { name: 'Village Bhujiyaghat, Nainital, Uttarakhand, India', kind: 'village' },
-    { name: 'Village Anegundi, Koppal, Karnataka, India', kind: 'village' },
-    { name: 'Village Mawlynnong, East Khasi Hills, Meghalaya, India', kind: 'village' },
-    { name: 'Village Hodka, Kutch, Gujarat, India', kind: 'village' },
-    { name: 'Village Khonoma, Kohima, Nagaland, India', kind: 'village' },
-    { name: 'Village Raghurajpur, Puri, Odisha, India', kind: 'village' },
-    { name: 'Village Hampi Bazaar Street, Vijayanagara, Karnataka, India', kind: 'street' },
-    { name: 'Village Majuli Ferry Ghat, Majuli, Assam, India', kind: 'landmark' },
-    { name: 'Subzi Mandi Chowk, Jalandhar, Punjab, India', kind: 'market' },
-    { name: 'Sardar Patel Marg, Jaipur, Rajasthan, India', kind: 'street' },
-    { name: 'Khau Galli, Ghatkopar, Mumbai, Maharashtra, India', kind: 'shop' },
-    { name: 'Saravana Stores, T Nagar, Chennai, Tamil Nadu, India', kind: 'shop' },
-    { name: 'Khan Market, New Delhi, Delhi, India', kind: 'shop' },
-    { name: 'New Market, Bhopal, Madhya Pradesh, India', kind: 'shop' },
-    { name: 'Koti Sultan Bazaar, Hyderabad, Telangana, India', kind: 'market' }
-  ];
+  const permissionCache = {
+    camera: 'unknown',
+    microphone: 'unknown',
+    geolocation: 'unknown'
+  };
 
-  const indexedIndiaLocations = indiaLocations.map((item) => ({
-    ...item,
-    normalized: item.name.toLowerCase()
-  }));
-
-  function locationScore(item, query) {
-    const q = query.toLowerCase();
-    const words = q.split(/\s+/).filter(Boolean);
-    let score = 0;
-
-    if (item.normalized.startsWith(q)) score += 120;
-    const idx = item.normalized.indexOf(q);
-    if (idx >= 0) score += Math.max(0, 90 - idx);
-
-    if (words.length && words.every((word) => item.normalized.includes(word))) {
-      score += 24;
+  async function queryPermissionState(name) {
+    if (!navigator.permissions || !navigator.permissions.query) {
+      return 'unsupported';
     }
 
-    if (item.kind === 'street' || item.kind === 'landmark' || item.kind === 'shop') {
-      score += 8;
+    try {
+      const status = await navigator.permissions.query({ name });
+      permissionCache[name] = status.state;
+      status.onchange = () => {
+        permissionCache[name] = status.state;
+      };
+      return status.state;
+    } catch (_error) {
+      return 'unsupported';
+    }
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const speechRecognitionSupported = !!SpeechRecognition;
+  let speechRecognition = null;
+  let speechListening = false;
+  let speechBaseText = '';
+
+  function setSpeechStatus(message, kind = '') {
+    if (!speechStatus) return;
+    speechStatus.textContent = message;
+    speechStatus.className = kind ? `vp-speech-status ${kind}` : 'vp-speech-status';
+  }
+
+  function updateSpeechButtonState(active) {
+    if (!speechToggleBtn) return;
+    speechToggleBtn.classList.toggle('listening', active);
+    speechToggleBtn.setAttribute('aria-pressed', String(active));
+    speechToggleBtn.setAttribute('aria-label', active ? 'Stop voice input' : 'Start voice input');
+  }
+
+  function insertSpeechText(transcript) {
+    if (!descriptionTextarea) return;
+    const trimmedTranscript = transcript.trim();
+    if (!trimmedTranscript) return;
+
+    const existing = speechBaseText.trim();
+    descriptionTextarea.value = existing ? `${existing} ${trimmedTranscript}`.trim() : trimmedTranscript;
+  }
+
+  function stopSpeechRecognition() {
+    if (speechRecognition && speechListening) {
+      speechRecognition.stop();
+    }
+  }
+
+  async function startSpeechRecognition() {
+    if (!speechRecognitionSupported) {
+      setSpeechStatus('Microphone input is not supported in this browser.', 'error');
+      return;
     }
 
-    return score;
+    const micPermission = await queryPermissionState('microphone');
+    if (micPermission === 'denied') {
+      setSpeechStatus('Microphone permission denied. Allow microphone access in browser settings.', 'error');
+      return;
+    }
+
+    if (micPermission === 'granted') {
+      setSpeechStatus('Microphone permission already granted.', '');
+    }
+
+    if (speechListening) {
+      stopSpeechRecognition();
+      return;
+    }
+
+    try {
+      if (!speechRecognition) {
+        speechRecognition = new SpeechRecognition();
+        speechRecognition.lang = 'en-US';
+        speechRecognition.interimResults = true;
+        speechRecognition.continuous = false;
+
+        speechRecognition.onstart = () => {
+          speechListening = true;
+          speechBaseText = descriptionTextarea.value;
+          updateSpeechButtonState(true);
+          setSpeechStatus('Listening... speak your incident description.', 'listening');
+        };
+
+        speechRecognition.onresult = (event) => {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; i += 1) {
+            transcript += event.results[i][0].transcript;
+          }
+          insertSpeechText(transcript);
+        };
+
+        speechRecognition.onerror = (event) => {
+          speechListening = false;
+          updateSpeechButtonState(false);
+
+          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            setSpeechStatus('Microphone permission denied. Allow access to use voice input.', 'error');
+            return;
+          }
+
+          setSpeechStatus('Voice input could not start. Please try again.', 'error');
+        };
+
+        speechRecognition.onend = () => {
+          const wasListening = speechListening;
+          speechListening = false;
+          updateSpeechButtonState(false);
+          if (wasListening) {
+            setSpeechStatus('Voice input stopped.', '');
+          }
+        };
+      }
+
+      speechRecognition.start();
+    } catch (_error) {
+      setSpeechStatus('Voice input is unavailable right now.', 'error');
+      updateSpeechButtonState(false);
+      speechListening = false;
+    }
+  }
+
+  if (!speechRecognitionSupported) {
+    updateSpeechButtonState(false);
+    setSpeechStatus('Microphone input is not supported in this browser.', 'error');
+    if (speechToggleBtn) {
+      speechToggleBtn.disabled = true;
+    }
+  }
+
+  queryPermissionState('microphone').then((state) => {
+    if (state === 'granted') {
+      setSpeechStatus('Microphone permission already granted.', '');
+    }
+  });
+
+  queryPermissionState('geolocation').then((state) => {
+    if (state === 'granted') {
+      setLocationStatus('Location permission already granted.', 'success');
+    }
+  });
+
+  queryPermissionState('camera');
+
+  const nominatimSearchUrl = 'https://nominatim.openstreetmap.org/search';
+  const nominatimReverseUrl = 'https://nominatim.openstreetmap.org/reverse';
+  const locationDebounceMs = 300;
+  const locationLimit = 10;
+  const locationState = {
+    suggestions: [],
+    debounceTimer: null,
+    abortController: null,
+    reverseAbortController: null,
+    requestId: 0
+  };
+
+  function setLocationStatus(message, kind = '') {
+    if (!locationStatus) return;
+    locationStatus.textContent = message;
+    locationStatus.className = kind ? `vp-location-status ${kind}` : 'vp-location-status';
+  }
+
+  function setCurrentLocationLoading(active) {
+    if (!currentLocationBtn) return;
+    currentLocationBtn.disabled = active;
+    currentLocationBtn.classList.toggle('is-loading', active);
+    currentLocationBtn.textContent = active ? 'Locating...' : 'Use Current Location';
+  }
+
+  function getLocationKind(item) {
+    const type = (item.type || '').toLowerCase();
+    const category = (item.class || '').toLowerCase();
+    const addresstype = (item.addresstype || '').toLowerCase();
+    const label = (item.display_name || '').toLowerCase();
+
+    if (label.includes('sector')) return 'sector';
+    if (['neighbourhood', 'suburb', 'quarter', 'locality'].includes(addresstype)) return 'neighbourhood';
+    if (['city', 'town', 'municipality'].includes(addresstype) || ['city', 'town'].includes(type)) return 'city';
+    if (['village', 'hamlet', 'suburb', 'neighbourhood'].includes(addresstype) || ['village', 'hamlet'].includes(type)) return 'village';
+    if (['road', 'residential', 'pedestrian', 'primary', 'secondary', 'tertiary', 'street'].includes(type) || addresstype === 'road') return 'street';
+    if (['tourism', 'historic', 'amenity', 'leisure'].includes(category)) return 'landmark';
+    return addresstype || type || 'place';
+  }
+
+  function getPrimaryAddressPart(item) {
+    const address = item.address || {};
+    return (
+      address.road ||
+      address.neighbourhood ||
+      address.suburb ||
+      address.village ||
+      address.town ||
+      address.city ||
+      address.county ||
+      item.display_name ||
+      'Location'
+    );
+  }
+
+  function buildSearchQueries(query) {
+    const q = query.trim();
+    if (!q) return [];
+
+    const hasIndia = /\bindia\b/i.test(q);
+    return hasIndia ? [q] : [q, `${q}, India`];
+  }
+
+  async function fetchNominatimSearch(query, signal) {
+    const params = new URLSearchParams({
+      q: query,
+      format: 'json',
+      countrycodes: 'in',
+      addressdetails: '1',
+      extratags: '1',
+      namedetails: '1',
+      dedupe: '0',
+      limit: String(locationLimit)
+    });
+
+    const response = await fetch(`${nominatimSearchUrl}?${params.toString()}`, {
+      signal,
+      headers: {
+        Accept: 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Location lookup failed');
+    }
+
+    return response.json();
+  }
+
+  function clearLocationSuggestions() {
+    locationState.suggestions = [];
+    locationMenu.classList.remove('active');
+    locationMenu.innerHTML = '';
+    selectedSuggestionIndex = -1;
+  }
+
+  function applySuggestionByIndex(index) {
+    if (index < 0 || index >= locationState.suggestions.length) return;
+    const selected = locationState.suggestions[index];
+    locationInput.value = selected.name;
+    locationInput.dataset.lat = selected.lat;
+    locationInput.dataset.lon = selected.lon;
+    setLocationStatus('');
+    clearLocationSuggestions();
   }
 
   function setActiveSuggestion(index) {
@@ -241,54 +408,217 @@
   }
 
   function applyActiveSuggestion() {
-    const options = Array.from(locationMenu.querySelectorAll('.vp-location-item'));
-    if (selectedSuggestionIndex < 0 || selectedSuggestionIndex >= options.length) return;
-    const selected = options[selectedSuggestionIndex];
-    locationInput.value = selected.getAttribute('data-name') || selected.textContent || '';
-    locationMenu.classList.remove('active');
+    applySuggestionByIndex(selectedSuggestionIndex);
   }
 
-  function renderLocationSuggestions(query) {
-    const q = query.trim().toLowerCase();
-    if (!q) {
-      locationMenu.classList.remove('active');
-      locationMenu.innerHTML = '';
-      selectedSuggestionIndex = -1;
+  function renderLocationSuggestions(items) {
+    locationState.suggestions = items;
+
+    if (!items.length) {
+      clearLocationSuggestions();
       return;
     }
 
-    const suggestions = indexedIndiaLocations
-      .filter(item => item.normalized.includes(q))
-      .sort((a, b) => locationScore(b, q) - locationScore(a, q))
-      .slice(0, 8);
+    locationMenu.innerHTML = '';
+    items.forEach((item, idx) => {
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.className = 'vp-location-item';
+      option.setAttribute('data-index', String(idx));
+      option.setAttribute('data-name', item.name);
 
-    if (!suggestions.length) {
-      locationMenu.classList.remove('active');
-      locationMenu.innerHTML = '';
-      selectedSuggestionIndex = -1;
-      return;
-    }
+      const primaryNode = document.createElement('span');
+      primaryNode.className = 'vp-location-primary';
+      primaryNode.textContent = item.primary;
 
-    locationMenu.innerHTML = suggestions
-      .map(item => `<button type="button" class="vp-location-item" data-name="${item.name}">${item.name}<span class="vp-location-kind">${item.kind}</span></button>`)
-      .join('');
+      const addressNode = document.createElement('span');
+      addressNode.className = 'vp-location-address';
+      addressNode.textContent = item.name;
+
+      const kindNode = document.createElement('span');
+      kindNode.className = 'vp-location-kind';
+      kindNode.textContent = item.kind;
+
+      option.appendChild(primaryNode);
+      option.appendChild(addressNode);
+      option.appendChild(kindNode);
+      locationMenu.appendChild(option);
+    });
 
     locationMenu.classList.add('active');
     setActiveSuggestion(0);
   }
 
+  async function fetchLocationSuggestions(query) {
+    const q = query.trim();
+    if (q.length < 2) {
+      setLocationStatus('');
+      clearLocationSuggestions();
+      return;
+    }
+
+    if (locationState.abortController) {
+      locationState.abortController.abort();
+    }
+
+    locationState.abortController = new AbortController();
+    locationState.requestId += 1;
+    const requestId = locationState.requestId;
+    setLocationStatus('Searching locations...', 'loading');
+
+    try {
+      const queries = buildSearchQueries(q);
+      let payload = [];
+
+      for (const searchQuery of queries) {
+        const data = await fetchNominatimSearch(searchQuery, locationState.abortController.signal);
+        if (Array.isArray(data) && data.length) {
+          payload = data;
+          break;
+        }
+      }
+
+      if (requestId !== locationState.requestId) {
+        return;
+      }
+
+      if (!Array.isArray(payload) || !payload.length) {
+        clearLocationSuggestions();
+        setLocationStatus('No matching locations found in India.', 'error');
+        return;
+      }
+
+      const suggestions = payload.map((item) => ({
+        name: item.display_name || '',
+        primary: getPrimaryAddressPart(item),
+        kind: getLocationKind(item),
+        lat: item.lat || '',
+        lon: item.lon || ''
+      })).filter((item) => item.name);
+
+      renderLocationSuggestions(suggestions);
+      setLocationStatus('');
+    } catch (error) {
+      if (error && error.name === 'AbortError') {
+        return;
+      }
+
+      clearLocationSuggestions();
+      setLocationStatus('Unable to fetch locations. Check connection and try again.', 'error');
+    }
+  }
+
+  async function reverseGeocodeLocation(latitude, longitude) {
+    if (locationState.reverseAbortController) {
+      locationState.reverseAbortController.abort();
+    }
+
+    locationState.reverseAbortController = new AbortController();
+    const params = new URLSearchParams({
+      lat: String(latitude),
+      lon: String(longitude),
+      format: 'json',
+      addressdetails: '1',
+      zoom: '18'
+    });
+
+    const response = await fetch(`${nominatimReverseUrl}?${params.toString()}`, {
+      signal: locationState.reverseAbortController.signal,
+      headers: {
+        Accept: 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Reverse geocode failed');
+    }
+
+    return response.json();
+  }
+
+  async function requestCurrentLocation() {
+    if (!navigator.geolocation) {
+      setLocationStatus('Current location is not supported in this browser.', 'error');
+      return;
+    }
+
+    const geoPermission = await queryPermissionState('geolocation');
+    if (geoPermission === 'denied') {
+      setLocationStatus('Location permission denied. Allow location access in browser settings.', 'error');
+      return;
+    }
+
+    setCurrentLocationLoading(true);
+    setLocationStatus(
+      geoPermission === 'granted'
+        ? 'Location permission already granted. Fetching current location...'
+        : 'Fetching current location...',
+      'loading'
+    );
+    clearLocationSuggestions();
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
+        const data = await reverseGeocodeLocation(latitude, longitude);
+        const display = data && data.display_name ? data.display_name : `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+
+        locationInput.value = display;
+        locationInput.dataset.lat = String(latitude);
+        locationInput.dataset.lon = String(longitude);
+        setLocationStatus('Current location applied.', 'success');
+      } catch (error) {
+        if (error && error.name === 'AbortError') return;
+        setLocationStatus('Could not resolve your address. Please try typing location.', 'error');
+      } finally {
+        setCurrentLocationLoading(false);
+      }
+    }, (error) => {
+      setCurrentLocationLoading(false);
+      if (error && error.code === error.PERMISSION_DENIED) {
+        permissionCache.geolocation = 'denied';
+        setLocationStatus('Location permission denied. Allow access to use current location.', 'error');
+        return;
+      }
+      if (error && error.code === error.POSITION_UNAVAILABLE) {
+        setLocationStatus('Location unavailable right now. Please try again.', 'error');
+        return;
+      }
+      if (error && error.code === error.TIMEOUT) {
+        setLocationStatus('Location request timed out. Please try again.', 'error');
+        return;
+      }
+      setLocationStatus('Unable to fetch current location.', 'error');
+    }, {
+      enableHighAccuracy: true,
+      timeout: 12000,
+      maximumAge: 0
+    });
+  }
+
   locationInput.addEventListener('input', () => {
-    renderLocationSuggestions(locationInput.value);
+    delete locationInput.dataset.lat;
+    delete locationInput.dataset.lon;
+    if (locationState.debounceTimer) {
+      clearTimeout(locationState.debounceTimer);
+    }
+
+    locationState.debounceTimer = setTimeout(() => {
+      fetchLocationSuggestions(locationInput.value);
+    }, locationDebounceMs);
   });
+
+  if (currentLocationBtn) {
+    currentLocationBtn.addEventListener('click', requestCurrentLocation);
+  }
 
   locationMenu.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     const option = target.closest('.vp-location-item');
     if (!option) return;
-    locationInput.value = option.getAttribute('data-name') || '';
-    locationMenu.classList.remove('active');
-    selectedSuggestionIndex = -1;
+    const index = Number(option.getAttribute('data-index'));
+    applySuggestionByIndex(index);
   });
 
   locationInput.addEventListener('keydown', (event) => {
@@ -317,17 +647,27 @@
     }
 
     if (event.key === 'Escape') {
-      locationMenu.classList.remove('active');
-      selectedSuggestionIndex = -1;
+      clearLocationSuggestions();
     }
   });
 
   document.addEventListener('click', (event) => {
     if (!locationBox.contains(event.target)) {
-      locationMenu.classList.remove('active');
-      selectedSuggestionIndex = -1;
+      clearLocationSuggestions();
     }
   });
+
+  if (speechToggleBtn) {
+    speechToggleBtn.addEventListener('click', startSpeechRecognition);
+  }
+
+  if (descriptionTextarea) {
+    descriptionTextarea.addEventListener('input', () => {
+      if (!speechListening) {
+        speechBaseText = descriptionTextarea.value;
+      }
+    });
+  }
 
   // HANDLE MEDIA UPLOAD
   const mediaInput = document.getElementById('media-input');
@@ -339,6 +679,7 @@
   const capturePhotoBtn = document.getElementById('capture-photo-btn');
   const recordVideoBtn = document.getElementById('record-video-btn');
   const stopCameraBtn = document.getElementById('stop-camera-btn');
+  const mediaStatus = document.getElementById('media-status');
   const mediaPreview = document.getElementById('media-preview');
 
   const captureState = {
@@ -349,6 +690,9 @@
     maxRecordMs: 10000
   };
 
+  const mediaFiles = [];
+  const reportSaveStore = [];
+
   function setDropHighlight(drop, active) {
     drop.classList.toggle('drag-active', active);
   }
@@ -357,64 +701,179 @@
     return !!file && (file.type.startsWith('image/') || file.type.startsWith('video/'));
   }
 
-  function renderMediaPreview(file, sourceLabel) {
-    if (!file) {
-      mediaPreview.textContent = '';
+  function renderMediaGallery() {
+    if (!mediaFiles.length) {
+      mediaPreview.innerHTML = '';
       return;
     }
 
     mediaPreview.innerHTML = '';
+    const gallery = document.createElement('div');
+    gallery.className = 'vp-media-preview-gallery';
 
-    if (file.type.startsWith('image/')) {
-      const img = document.createElement('img');
-      img.alt = 'Selected incident media image';
-      img.className = 'vp-preview-image';
-      img.src = URL.createObjectURL(file);
-      mediaPreview.appendChild(img);
+    mediaFiles.forEach((entry, index) => {
+      const item = document.createElement('article');
+      item.className = 'vp-media-item';
 
-      const detail = document.createElement('div');
-      detail.className = 'vp-media-preview-note';
-      detail.textContent = `${sourceLabel} ready: ${file.name}`;
-      mediaPreview.appendChild(detail);
-      return;
-    }
+      if (entry.kind === 'image') {
+        const img = document.createElement('img');
+        img.className = 'vp-media-thumb';
+        img.src = entry.url;
+        img.alt = `Selected media ${index + 1}`;
+        item.appendChild(img);
+      } else {
+        const video = document.createElement('video');
+        video.className = 'vp-media-thumb';
+        video.src = entry.url;
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'metadata';
+        item.appendChild(video);
+      }
 
-    if (file.type.startsWith('video/')) {
-      const video = document.createElement('video');
-      video.className = 'vp-preview-video';
-      video.controls = true;
-      video.playsInline = true;
-      video.src = URL.createObjectURL(file);
-      mediaPreview.appendChild(video);
+      const meta = document.createElement('div');
+      meta.className = 'vp-media-item-meta';
+      meta.textContent = `${entry.source} • ${entry.file.name}`;
+      item.appendChild(meta);
 
-      const detail = document.createElement('div');
-      detail.className = 'vp-media-preview-note';
-      detail.textContent = `${sourceLabel} ready: ${file.name}`;
-      mediaPreview.appendChild(detail);
-      return;
-    }
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'vp-media-remove';
+      removeBtn.setAttribute('data-media-remove', String(index));
+      removeBtn.setAttribute('aria-label', `Remove media ${index + 1}`);
+      removeBtn.textContent = '×';
+      item.appendChild(removeBtn);
 
-    showMediaError('Please choose an image or video file.');
+      gallery.appendChild(item);
+    });
+
+    mediaPreview.appendChild(gallery);
   }
 
   function showMediaError(message) {
-    mediaPreview.innerHTML = `<span class="vp-media-error">${message}</span>`;
+    if (!mediaStatus) return;
+    mediaStatus.innerHTML = `<span class="vp-media-error">${message}</span>`;
   }
 
-  function syncFileToInput(file) {
+  function showMediaStatus(message) {
+    if (!mediaStatus) return;
+    mediaStatus.innerHTML = `<span class="vp-media-preview-note">${message}</span>`;
+  }
+
+  function clearMediaStatus() {
+    if (!mediaStatus) return;
+    mediaStatus.innerHTML = '';
+  }
+
+  function syncFileInputFromMediaFiles() {
     const transfer = new DataTransfer();
-    transfer.items.add(file);
+    mediaFiles.forEach((entry) => {
+      transfer.items.add(entry.file);
+    });
     mediaInput.files = transfer.files;
   }
 
-  function setSelectedMedia(file, source) {
+  function addSelectedMedia(file, source) {
     if (!isValidMedia(file)) {
       showMediaError('Please choose an image or video file.');
       return;
     }
 
-    syncFileToInput(file);
-    renderMediaPreview(file, source === 'device' ? 'Device upload' : 'Live capture');
+    clearMediaStatus();
+    const sourceLabel = source === 'device' ? 'Device upload' : 'Live capture';
+    // Do not replace previous media when new media is captured/uploaded.
+    // Always append to mediaFiles so backend can receive all items together.
+    mediaFiles.push({
+      file,
+      source: sourceLabel,
+      kind: file.type.startsWith('image/') ? 'image' : 'video',
+      url: URL.createObjectURL(file)
+    });
+    syncFileInputFromMediaFiles();
+    renderMediaGallery();
+    showMediaStatus(`${sourceLabel} added. ${mediaFiles.length} media item(s) selected.`);
+  }
+
+  function removeSelectedMedia(index) {
+    if (index < 0 || index >= mediaFiles.length) return;
+    const [removed] = mediaFiles.splice(index, 1);
+    if (removed && removed.url) {
+      URL.revokeObjectURL(removed.url);
+    }
+    syncFileInputFromMediaFiles();
+    renderMediaGallery();
+    showMediaStatus(`${mediaFiles.length} media item(s) selected.`);
+  }
+
+  function buildReportMediaPayload() {
+    return mediaFiles.map((entry, index) => ({
+      order: index,
+      name: entry.file.name,
+      type: entry.file.type,
+      size: entry.file.size,
+      source: entry.source,
+      file: entry.file
+    }));
+  }
+
+  function resetCameraUI() {
+    stopCameraStream();
+    cameraOverlay.textContent = 'Camera is live';
+    recordVideoBtn.textContent = 'Start Video';
+    cameraPanel.hidden = true;
+  }
+
+  function resetMediaState() {
+    mediaFiles.forEach((entry) => {
+      if (entry.url) {
+        URL.revokeObjectURL(entry.url);
+      }
+    });
+    mediaFiles.length = 0;
+    syncFileInputFromMediaFiles();
+    renderMediaGallery();
+    clearMediaStatus();
+    mediaInput.value = '';
+  }
+
+  function resetLocationState() {
+    locationInput.value = '';
+    delete locationInput.dataset.lat;
+    delete locationInput.dataset.lon;
+    setLocationStatus('');
+    clearLocationSuggestions();
+  }
+
+  function resetReportForm() {
+    if (incidentTypeSelect) {
+      incidentTypeSelect.selectedIndex = 0;
+    }
+
+    if (descriptionTextarea) {
+      descriptionTextarea.value = '';
+    }
+    speechBaseText = '';
+    stopSpeechRecognition();
+    updateSpeechButtonState(false);
+    setSpeechStatus('');
+
+    resetLocationState();
+    resetMediaState();
+    resetCameraUI();
+  }
+
+  function buildReportPayload() {
+    return {
+      incidentType: incidentTypeSelect ? incidentTypeSelect.value : '',
+      description: descriptionTextarea ? descriptionTextarea.value : '',
+      location: locationInput.value,
+      coordinates: {
+        lat: locationInput.dataset.lat || '',
+        lon: locationInput.dataset.lon || ''
+      },
+      mediaFiles: buildReportMediaPayload(),
+      submittedAt: new Date().toISOString()
+    };
   }
 
   function stopCameraStream() {
@@ -444,9 +903,16 @@
       return;
     }
 
+    const cameraPermission = await queryPermissionState('camera');
+    if (cameraPermission === 'denied') {
+      showMediaError('Camera permission denied. Allow access in browser settings to use Live Capture.');
+      return;
+    }
+
     try {
       if (captureState.stream) {
         cameraPanel.hidden = false;
+        showMediaStatus('Camera permission already granted. Reusing live session.');
         return;
       }
 
@@ -455,9 +921,13 @@
       cameraPreview.srcObject = stream;
       cameraPanel.hidden = false;
       cameraOverlay.textContent = 'Camera is live';
+      if (cameraPermission === 'granted') {
+        showMediaStatus('Camera permission already granted. Live capture ready.');
+      }
     } catch (error) {
       const denied = error && (error.name === 'NotAllowedError' || error.name === 'SecurityError');
       if (denied) {
+        permissionCache.camera = 'denied';
         showMediaError('Camera access denied. Please allow permission to use Live Capture.');
         return;
       }
@@ -497,7 +967,7 @@
         return;
       }
       const photoFile = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
-      setSelectedMedia(photoFile, 'camera');
+      addSelectedMedia(photoFile, 'camera');
       cameraOverlay.textContent = 'Photo captured';
     }, 'image/jpeg', 0.92);
   }
@@ -511,7 +981,7 @@
     const videoBlob = new Blob(captureState.chunks, { type: 'video/webm' });
     const videoFile = new File([videoBlob], `capture-${Date.now()}.webm`, { type: 'video/webm' });
     captureState.chunks = [];
-    setSelectedMedia(videoFile, 'camera');
+    addSelectedMedia(videoFile, 'camera');
     cameraOverlay.textContent = 'Video captured';
   }
 
@@ -565,7 +1035,9 @@
   }
 
   mediaInput.addEventListener('change', () => {
-    setSelectedMedia(mediaInput.files && mediaInput.files[0], 'device');
+    const files = mediaInput.files ? Array.from(mediaInput.files) : [];
+    if (!files.length) return;
+    files.forEach((file) => addSelectedMedia(file, 'device'));
   });
   cameraOpenBtn.addEventListener('click', openCameraStream);
   capturePhotoBtn.addEventListener('click', capturePhoto);
@@ -573,6 +1045,22 @@
   stopCameraBtn.addEventListener('click', stopCameraStream);
 
   window.addEventListener('beforeunload', stopCameraStream);
+  window.addEventListener('beforeunload', () => {
+    mediaFiles.forEach((entry) => {
+      if (entry.url) {
+        URL.revokeObjectURL(entry.url);
+      }
+    });
+    if (locationState.debounceTimer) {
+      clearTimeout(locationState.debounceTimer);
+    }
+    if (locationState.abortController) {
+      locationState.abortController.abort();
+    }
+    if (locationState.reverseAbortController) {
+      locationState.reverseAbortController.abort();
+    }
+  });
 
   ['dragenter', 'dragover'].forEach(name => {
     mediaDrop.addEventListener(name, (event) => {
@@ -588,10 +1076,19 @@
   });
   mediaDrop.addEventListener('drop', (event) => {
     const files = event.dataTransfer && event.dataTransfer.files;
-    if (!files || !files[0]) return;
-    const file = files[0];
-    if (!isValidMedia(file)) return;
-    setSelectedMedia(file, 'device');
+    if (!files || !files.length) return;
+    Array.from(files)
+      .filter((file) => isValidMedia(file))
+      .forEach((file) => addSelectedMedia(file, 'device'));
+  });
+
+  mediaPreview.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const removeButton = target.closest('[data-media-remove]');
+    if (!removeButton) return;
+    const index = Number(removeButton.getAttribute('data-media-remove'));
+    removeSelectedMedia(index);
   });
 
   // REPORT SUBMIT MODAL HANDLING
@@ -609,24 +1106,33 @@
     reportModal.setAttribute('aria-hidden', 'true');
   }
 
+  function confirmReportSubmission() {
+    closeReportModal();
+    resetReportForm();
+  }
+
   if (reportSubmitBtn) {
     reportSubmitBtn.addEventListener('click', (event) => {
       event.preventDefault();
+      if (speechListening) {
+        stopSpeechRecognition();
+      }
+
+      const reportPayload = buildReportPayload();
+      reportSaveStore.push(reportPayload);
+      console.log('Report payload prepared:', reportPayload);
       openReportModal();
-      
-      // Auto-close modal after 4 seconds
-      setTimeout(closeReportModal, 4000);
     });
   }
 
   if (reportModalClose) {
-    reportModalClose.addEventListener('click', closeReportModal);
+    reportModalClose.addEventListener('click', confirmReportSubmission);
   }
 
   // Close modal when clicking outside of it
   reportModal.addEventListener('click', (event) => {
     if (event.target === reportModal) {
-      closeReportModal();
+      confirmReportSubmission();
     }
   });
 </script>

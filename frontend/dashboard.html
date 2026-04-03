@@ -25,12 +25,10 @@
     <a class="vp-side-link" href="chat.html"><span class="icon">◌</span>Chat</a>
   </div>
   <div class="vp-sidebar-footer">Citizen system • live response</div>
+  <a class="vp-side-link vp-side-logout" href="veripulse.html"><span class="icon">⎋</span>Logout</a>
 </aside>
 
 <div class="vp-page">
-  <div class="vp-page-topbar">
-    <a class="vp-logout" href="veripulse.html">Logout</a>
-  </div>
   <!-- MAIN CONTENT SECTION -->
   <main class="vp-page-inner vp-page-enter">
     <section class="vp-section vp-dashboard-section">
@@ -177,7 +175,7 @@
           <div class="vp-alert-reporter">Reported by <span class="vp-reporter-name">${incident.userName}</span></div>
           <h2 class="vp-alert-title">${incident.title}</h2>
           <div class="vp-alert-location">${incident.location}</div>
-          <div class="vp-alert-time">${incident.time}</div>
+          <div class="vp-alert-time"><span class="vp-time-icon" aria-hidden="true"><svg viewBox="0 0 20 20" focusable="false"><circle cx="10" cy="10" r="7.2"></circle><path d="M10 5.8v4.4l2.9 1.6"></path></svg></span>${incident.time}</div>
         </div>
         <div class="vp-alert-right">
           <div class="vp-alert-stats">
