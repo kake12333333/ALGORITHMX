@@ -475,21 +475,83 @@ function switchTab(tab,btn){
     requestAnimationFrame(()=>nextPane.classList.remove('fade-out'));
   },170);
 }
-function doLogin(){
+const API_BASE = 'http://localhost:5000';
+
+function doLogin(e){
+  if(e?.preventDefault) e.preventDefault();
   const email=document.getElementById('login-email').value.trim();
   const pass=document.getElementById('login-pass').value;
   if(!email||!pass){alert('Please fill in all fields');return;}
-  window.location.href='citizen.html';
+  (async () => {
+    try {
+      const url = `${API_BASE}/api/auth/login`;
+      console.log('Login request:', { url, email });
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass }),
+      });
+
+      let data = null;
+      try { data = await res.json(); } catch (_) {}
+      console.log('Login response:', { ok: res.ok, status: res.status, data });
+
+      if(!res.ok){
+        alert(data?.message || 'Login failed');
+        return;
+      }
+
+      alert('Login successful');
+      window.location.href='citizen.html';
+    } catch (err) {
+      console.error('Login error:', err);
+      alert('Login error');
+    }
+  })();
 }
-function doRegister(){
+function doRegister(e){
+  if(e?.preventDefault) e.preventDefault();
   const name=document.getElementById('reg-name').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const pass=document.getElementById('reg-pass').value;
   const confirmPass=document.getElementById('reg-confirm-pass').value;
   if(!name||!email||!pass){alert('Please fill in all fields');return;}
   if(pass!==confirmPass){alert('Passwords do not match');return;}
-  window.location.href='citizen.html';
+  (async () => {
+    try {
+      const url = `${API_BASE}/api/auth/signup`;
+      console.log('Signup request:', { url, name, email });
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass }),
+      });
+
+      let data = null;
+      try { data = await res.json(); } catch (_) {}
+      console.log('Signup response:', { ok: res.ok, status: res.status, data });
+
+      if(!res.ok){
+        alert(data?.message || 'Registration failed');
+        return;
+      }
+
+      alert('Account created');
+      window.location.href='citizen.html';
+    } catch (err) {
+      console.error('Register error:', err);
+      alert('Registration error');
+    }
+  })();
 }
+
+// Make sure Enter key / implicit submits don't reload page.
+document.addEventListener('DOMContentLoaded', () => {
+  const loginBtn = document.querySelector('#login-form .btn-submit');
+  const signupBtn = document.querySelector('#register-form .btn-submit');
+  loginBtn?.addEventListener('click', doLogin);
+  signupBtn?.addEventListener('click', doRegister);
+});
 </script>
 </body>
 </html>

@@ -20,9 +20,10 @@ function buildUserResponse(email, role) {
 
 // POST /api/auth/register
 // Registers a new user in Firebase Authentication with default role "citizen".
-router.post("/register", async (req, res) => {
+async function handleRegister(req, res) {
   try {
     const { email, password } = req.body || {};
+    console.log("AUTH /signup|/register body:", req.body);
 
     // Basic input validation for hackathon use.
     if (!email || !password) {
@@ -62,7 +63,11 @@ router.post("/register", async (req, res) => {
       message: err.message || "Failed to register user",
     });
   }
-});
+}
+
+router.post("/register", handleRegister);
+// Alias to match frontend naming.
+router.post("/signup", handleRegister);
 
 // POST /api/auth/login
 // Basic login check for hackathon: verifies that the user exists in Firebase.
@@ -71,6 +76,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body || {};
+    console.log("AUTH /login body:", req.body);
 
     if (!email || !password) {
       return res
