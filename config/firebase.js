@@ -9,4 +9,8 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
+if (serviceAccount.project_id) {
+  console.log(`[Firebase] Firestore project: ${serviceAccount.project_id}`);
+}
+
 export default db;
