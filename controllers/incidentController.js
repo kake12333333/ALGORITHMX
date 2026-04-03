@@ -1,6 +1,7 @@
 import { analyzeIncident } from "../services/aiService.js";
 import db from "../config/firebase.js";
 import { FieldValue } from "firebase-admin/firestore";
+import { findEarliestDuplicate, mergeIntoCanonical } from "../services/incidentDuplicateService.js";
 
 const INCIDENTS_COLLECTION = "incidents";
 
@@ -28,8 +29,8 @@ function serializeTimestamp(value) {
   return value;
 }
 
-function incidentDocToResponse(id, data) {
-  if (!data) return { id };
+function incidentDocToResponse(id, data, extras = {}) {
+  if (!data) return { id, ...extras };
   return {
     id,
     type: data.type ?? null,
@@ -42,6 +43,10 @@ function incidentDocToResponse(id, data) {
     reason: data.reason ?? "",
     statusFlow: data.statusFlow ?? null,
     createdAt: serializeTimestamp(data.createdAt),
+    report_count: data.report_count ?? 1,
+    merged_descriptions: data.merged_descriptions ?? [],
+    last_merged_at: serializeTimestamp(data.last_merged_at),
+    ...extras,
   };
 }
 
@@ -75,6 +80,28 @@ export const createIncident = async (req, res) => {
       Boolean(req.file)
     );
 
+    const duplicate = await findEarliestDuplicate(db, INCIDENTS_COLLECTION, {
+      type: canonicalType,
+      description,
+      location,
+    });
+
+    if (duplicate) {
+      await mergeIntoCanonical(duplicate.ref, duplicate.data, {
+        description,
+        mediaUrl,
+        aiResult,
+      });
+      const mergedSnap = await duplicate.ref.get();
+      const mergedData = mergedSnap.data();
+      return res.status(200).json(
+        incidentDocToResponse(duplicate.id, mergedData, {
+          merged: true,
+          message: "Duplicate of an earlier report; merged into the original incident.",
+        })
+      );
+    }
+
     const firestorePayload = {
       type: canonicalType,
       description,
@@ -85,6 +112,8 @@ export const createIncident = async (req, res) => {
       status: aiResult.status,
       reason: aiResult.reason,
       createdAt: FieldValue.serverTimestamp(),
+      report_count: 1,
+      merged_descriptions: [],
     };
 
     const docRef = await db.collection(INCIDENTS_COLLECTION).add(firestorePayload);
