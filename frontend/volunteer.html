@@ -14,24 +14,11 @@
 <canvas id="bg-canvas"></canvas>
 <canvas id="earth-canvas" width="800" height="800"></canvas>
 <div class="alert-ticker"><div class="ticker-inner" id="ticker"></div></div>
-<!-- SIDEBAR SECTION -->
-<aside class="vp-sidebar">
-  <a class="vp-sidebar-brand" href="veripulse.html"><iframe class="vp-sidebar-logo" src="responza_hero_logo_final.html" title="VeriPulse Logo" loading="lazy"></iframe>VeriPulse</a>
-  <div class="vp-side-menu">
-    <a class="vp-side-link" href="citizen.html"><span class="icon">⌂</span>Home</a>
-    <a class="vp-side-link" href="dashboard.html"><span class="icon">▣</span>Dashboard</a>
-    <a class="vp-side-link" href="report.html"><span class="icon">⚠</span>Report Emergency</a>
-    <a class="vp-side-link active" href="volunteer.html"><span class="icon">✦</span>Join as Volunteer</a>
-    <a class="vp-side-link" href="chat.html"><span class="icon">◌</span>Chat</a>
-  </div>
-  <div class="vp-sidebar-footer">Citizen system • live response</div>
-  <a class="vp-side-link vp-side-logout" href="veripulse.html"><span class="icon">⎋</span>Logout</a>
-</aside>
+<a class="vp-landing-nav" href="veripulse.html" aria-label="Back to landing">Back to Landing</a>
 
-<div class="vp-page">
-  <!-- MAIN CONTENT SECTION -->
-  <main class="vp-page-inner vp-page-enter">
-    <section class="vp-section vp-volunteer-section">
+<!-- MAIN CONTENT SECTION (INDEPENDENT VOLUNTEER LAYOUT) -->
+<main class="vp-main vp-page-enter">
+    <section class="vp-section vp-volunteer-section" style="max-width: 1120px; margin: 0 auto;">
     <div class="vp-section-header">
       <div class="vp-section-tag">// Volunteer Network</div>
       <h1 class="vp-section-title">JOIN AS VOLUNTEER</h1>
@@ -68,55 +55,8 @@
       <button class="vp-form-submit vp-volunteer-join" id="join-btn">Join</button>
     </div>
 
-    <!-- PENDING STATUS VIEW (shown after submission) -->
-    <div class="vp-pending-status" id="pending-status" style="display: none;">
-      <div class="vp-pending-icon">◆</div>
-      <h2 class="vp-pending-title">Application Submitted</h2>
-      
-      <div class="vp-pending-badge">
-        <span class="vp-badge-status">Pending Approval</span>
-      </div>
-      
-      <p class="vp-pending-message">Your request is under review.</p>
-      
-      <div class="vp-submitted-details">
-        <div class="vp-detail-item">
-          <span class="vp-detail-label">Name</span>
-          <span class="vp-detail-value" id="detail-name">—</span>
-        </div>
-        <div class="vp-detail-item">
-          <span class="vp-detail-label">Age</span>
-          <span class="vp-detail-value" id="detail-age">—</span>
-        </div>
-        <div class="vp-detail-item">
-          <span class="vp-detail-label">Skills</span>
-          <span class="vp-detail-value" id="detail-skills">—</span>
-        </div>
-        <div class="vp-detail-item">
-          <span class="vp-detail-label">Submission Date</span>
-          <span class="vp-detail-value" id="detail-date">—</span>
-        </div>
-      </div>
-
-      <div class="vp-pending-actions">
-        <button class="vp-btn-secondary" id="cancel-btn">Cancel Application</button>
-      </div>
-    </div>
-
-    <!-- CANCELLED STATUS VIEW (shown after cancellation) -->
-    <div class="vp-cancelled-status" id="cancelled-status" style="display: none;">
-      <div class="vp-cancelled-icon">✕</div>
-      <h2 class="vp-cancelled-title">Application Cancelled</h2>
-      
-      <div class="vp-cancelled-badge">
-        <span class="vp-badge-cancelled">Cancelled</span>
-      </div>
-      
-      <button class="vp-btn-primary" id="reapply-btn">Edit and Reapply</button>
-    </div>
     </section>
-  </main>
-</div>
+</main>
 
 <!-- SUCCESS MODAL POPUP -->
 <div class="vp-modal-overlay" id="successModal">
@@ -124,61 +64,14 @@
     <div class="vp-modal-icon">✓</div>
     <h2 class="vp-modal-title">Volunteer Registration Submitted Successfully</h2>
     <p class="vp-modal-status">Status: <span class="vp-status-pending">Pending Approval</span></p>
-    <button class="vp-modal-button" id="homeBtn">Back to Home</button>
+    <button class="vp-modal-button" id="homeBtn">Back to Landing</button>
   </div>
 </div>
 
 <script src="citizen-ui.js"></script>
 <script>
   // THIS IS VOLUNTEER PAGE SCRIPT
-  // VOLUNTEER FORM STATE MANAGEMENT
-  
-  // Load volunteer state from localStorage on page load
-  function loadVolunteerState() {
-    const volunteerData = localStorage.getItem('volunteerData');
-    const volunteerCancelled = localStorage.getItem('volunteerCancelled');
-    
-    if (volunteerData) {
-      const data = JSON.parse(volunteerData);
-      showPendingStatus(data);
-      return true;
-    }
-    
-    if (volunteerCancelled) {
-      showCancelledStatus();
-      return true;
-    }
-    
-    return false;
-  }
-
-  // Show pending status view instead of form
-  function showPendingStatus(data) {
-    const form = document.getElementById('volunteer-form');
-    const pendingStatus = document.getElementById('pending-status');
-    
-    // Hide form, show pending status
-    form.style.display = 'none';
-    pendingStatus.style.display = 'block';
-    
-    // Populate submitted details
-    document.getElementById('detail-name').textContent = data.name || '—';
-    document.getElementById('detail-age').textContent = data.age || '—';
-    document.getElementById('detail-skills').textContent = data.skills || '—';
-    document.getElementById('detail-date').textContent = new Date(data.submittedAt).toLocaleDateString() || '—';
-  }
-
-  // Show cancelled status view
-  function showCancelledStatus() {
-    const form = document.getElementById('volunteer-form');
-    const pendingStatus = document.getElementById('pending-status');
-    const cancelledStatus = document.getElementById('cancelled-status');
-    
-    // Hide form and pending, show cancelled
-    form.style.display = 'none';
-    pendingStatus.style.display = 'none';
-    cancelledStatus.style.display = 'block';
-  }
+  // VOLUNTEER FORM SUBMISSION
 
   // Collect form data and save to localStorage
   function captureFormData() {
@@ -200,54 +93,23 @@
 
   // Initialize page on load
   function initializePage() {
-    if (!loadVolunteerState()) {
-      // Form is visible, no prior submission
-      const joinBtn = document.getElementById('join-btn');
-      const successModal = document.getElementById('successModal');
-      const homeBtn = document.getElementById('homeBtn');
-      
-      // Handle form submission
-      joinBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        // Capture form data
-        const volunteerData = captureFormData();
-        
-        // Save to localStorage (persistent storage)
-        localStorage.setItem('volunteerData', JSON.stringify(volunteerData));
-        
-        // Show success modal
-        successModal.classList.add('active');
-        document.body.classList.add('no-y-overflow');
-      });
-      
-      // Handle "Back to Home" button
-      homeBtn.addEventListener('click', () => {
-        // Redirect to citizen home (user remains citizen until approved)
-        window.location.href = 'citizen.html';
-      });
-    } else {
-      // Either pending or cancelled state - handle button listeners
-      const cancelBtn = document.getElementById('cancel-btn');
-      const reapplyBtn = document.getElementById('reapply-btn');
-      
-      if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-          // Clear pending data and show cancelled state
-          localStorage.removeItem('volunteerData');
-          localStorage.setItem('volunteerCancelled', 'true');
-          showCancelledStatus();
-        });
-      }
-      
-      if (reapplyBtn) {
-        reapplyBtn.addEventListener('click', () => {
-          // Clear cancelled state and show form again
-          localStorage.removeItem('volunteerCancelled');
-          location.reload();
-        });
-      }
-    }
+    const joinBtn = document.getElementById('join-btn');
+    const successModal = document.getElementById('successModal');
+    const homeBtn = document.getElementById('homeBtn');
+
+    joinBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      const volunteerData = captureFormData();
+      localStorage.setItem('volunteerData', JSON.stringify(volunteerData));
+
+      successModal.classList.add('active');
+      document.body.classList.add('no-y-overflow');
+    });
+
+    homeBtn.addEventListener('click', () => {
+      window.location.href = 'veripulse.html';
+    });
   }
 
   // Initialize when DOM is ready

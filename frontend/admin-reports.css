@@ -1,0 +1,4 @@
+#reports-table-wrap .admin-chip { display: inline-block; }
+.report-priority-high { color: var(--red-alert); font-weight: 700; }
+.report-priority-medium { color: var(--yellow-warn); font-weight: 700; }
+.report-priority-low { color: var(--green-glow); font-weight: 700; }
