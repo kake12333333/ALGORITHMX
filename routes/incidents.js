@@ -1,5 +1,6 @@
 import express from "express";
 import { createIncident, getIncidents } from "../controllers/incidentController.js";
+import { getVolunteerCandidatesForIncident } from "../controllers/volunteerController.js";
 import upload from "../middleware/upload.js";
 
 const router = express.Router();
@@ -18,5 +19,6 @@ function maybeUploadMedia(req, res, next) {
 
 router.post("/report", maybeUploadMedia, createIncident);
 router.get("/all", getIncidents);
+router.get("/:incidentId/volunteer-candidates", getVolunteerCandidatesForIncident);
 
 export default router;
