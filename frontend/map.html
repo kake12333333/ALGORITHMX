@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeriPulse — Live Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="citizen.css">
+<link rel="stylesheet" href="map.css">
+</head>
+<body>
+<!-- THIS IS MAP PAGE -->
+<canvas id="bg-canvas"></canvas>
+<canvas id="earth-canvas" width="800" height="800"></canvas>
+<div class="alert-ticker"><div class="ticker-inner" id="ticker"></div></div>
+<!-- NAVBAR SECTION -->
+<nav class="vp-nav">
+  <a class="vp-brand" href="citizen.html"><iframe class="vp-brand-logo" src="responza_hero_logo_final.html" title="VeriPulse Logo" loading="lazy"></iframe>VeriPulse</a>
+  <ul class="vp-nav-links">
+    <li><a href="citizen.html">Home</a></li>
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="report.html">Report</a></li>
+    <li><a href="map.html">Map</a></li>
+    <li><a href="volunteer.html">Volunteer</a></li>
+    <li><a href="chat.html">Chat</a></li>
+  </ul>
+  <div class="vp-nav-right">
+    <a class="vp-nav-action" href="report.html">Report</a>
+    <a class="vp-nav-action" href="veripulse.html">Logout</a>
+  </div>
+</nav>
+<main class="vp-main vp-page-enter">
+  <!-- MAIN CONTENT SECTION -->
+  <section class="vp-section vp-map-section">
+    <div class="vp-section-header">
+      <div class="vp-section-tag">// Live Dashboard</div>
+      <h1 class="vp-section-title">INCIDENT MAP</h1>
+    </div>
+    <!-- MAP GRID SECTION -->
+    <div class="vp-map vp-form-shell">
+      <div class="vp-map-grid" id="map-grid">
+        <button class="vp-marker vp-marker-1 high" data-type="Fire" data-location="Andheri West" data-trust="94" data-status="Active"></button>
+        <button class="vp-marker vp-marker-2 medium" data-type="Medical" data-location="Colaba" data-trust="78" data-status="Reviewing"></button>
+        <button class="vp-marker vp-marker-3 low" data-type="Power Outage" data-location="Dadar" data-trust="62" data-status="Resolved"></button>
+        <button class="vp-marker vp-marker-4 high" data-type="Building Collapse Risk" data-location="Kurla" data-trust="88" data-status="Active"></button>
+        <button class="vp-marker vp-marker-5 medium" data-type="Flood" data-location="Bandra East" data-trust="74" data-status="Reviewing"></button>
+        <button class="vp-marker vp-marker-6 low" data-type="Road Blocked" data-location="Thane" data-trust="55" data-status="Resolved"></button>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- MAP MODAL SECTION -->
+<div class="vp-map-modal" id="map-modal">
+  <div class="vp-panel vp-modal-card vp-map-modal-card">
+    <button class="vp-close" id="map-close">✕</button>
+    <div class="vp-panel-title">Incident Details</div>
+    <div class="vp-list vp-map-modal-list">
+      <div class="vp-ai-row"><span>Type</span><strong id="map-type">Fire</strong></div>
+      <div class="vp-ai-row"><span>Location</span><strong id="map-location">Andheri West</strong></div>
+      <div class="vp-ai-row"><span>Trust Score</span><strong id="map-trust" class="vp-map-trust-score">94</strong></div>
+      <div class="vp-ai-row"><span>Status</span><strong id="map-status" class="vp-map-status-active">Active</strong></div>
+    </div>
+  </div>
+</div>
+<script src="citizen-ui.js"></script>
+<script>
+  // THIS IS MAP PAGE SCRIPT
+  // HANDLE MAP MARKER INTERACTION
+  const modal = document.getElementById('map-modal');
+  const typeEl = document.getElementById('map-type');
+  const locationEl = document.getElementById('map-location');
+  const trustEl = document.getElementById('map-trust');
+  const statusEl = document.getElementById('map-status');
+
+  document.querySelectorAll('.vp-marker').forEach(marker => {
+    marker.addEventListener('click', () => {
+      typeEl.textContent = marker.dataset.type;
+      locationEl.textContent = marker.dataset.location;
+      trustEl.textContent = marker.dataset.trust;
+      statusEl.textContent = marker.dataset.status;
+      trustEl.style.color = Number(marker.dataset.trust) >= 80 ? 'var(--green-glow)' : Number(marker.dataset.trust) >= 65 ? 'var(--yellow-warn)' : 'var(--red-alert)';
+      statusEl.style.color = marker.dataset.status === 'Resolved' ? 'var(--green-glow)' : marker.dataset.status === 'Active' ? 'var(--blue-bright)' : 'var(--yellow-warn)';
+      modal.classList.add('active');
+    });
+  });
+  // HANDLE MODAL CLOSE
+  document.getElementById('map-close').addEventListener('click', () => modal.classList.remove('active'));
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('active'); });
+</script>
+</body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeriPulse — Report Emergency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="citizen.css">
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<!-- THIS IS REPORT PAGE -->
+<canvas id="bg-canvas"></canvas>
+<canvas id="earth-canvas" width="800" height="800"></canvas>
+<div class="alert-ticker"><div class="ticker-inner" id="ticker"></div></div>
+<!-- SIDEBAR SECTION -->
+<aside class="vp-sidebar">
+  <a class="vp-sidebar-brand" href="veripulse.html"><iframe class="vp-sidebar-logo" src="responza_hero_logo_final.html" title="VeriPulse Logo" loading="lazy"></iframe>VeriPulse</a>
+  <div class="vp-side-menu">
+    <a class="vp-side-link" href="citizen.html"><span class="icon">⌂</span>Home</a>
+    <a class="vp-side-link" href="dashboard.html"><span class="icon">▣</span>Dashboard</a>
+    <a class="vp-side-link active" href="report.html"><span class="icon">⚠</span>Report Emergency</a>
+    <a class="vp-side-link" href="volunteer.html"><span class="icon">✦</span>Join as Volunteer</a>
+    <a class="vp-side-link" href="chat.html"><span class="icon">◌</span>Chat</a>
+  </div>
+  <div class="vp-sidebar-footer">Citizen system • live response</div>
+</aside>
+
+<div class="vp-page">
+  <div class="vp-page-topbar">
+    <a class="vp-logout" href="veripulse.html">Logout</a>
+  </div>
+  <!-- MAIN CONTENT SECTION -->
+  <main class="vp-page-inner vp-page-enter">
+    <section class="vp-section vp-report-section">
+    <div class="vp-section-header">
+      <div class="vp-section-tag">// Emergency Intake</div>
+      <h1 class="vp-section-title">REPORT INCIDENT</h1>
+    </div>
+    <!-- REPORT FORM SECTION -->
+    <div class="vp-form vp-form-shell">
+      <div class="vp-form-grid">
+        <div>
+          <label class="vp-form-label">Type</label>
+          <select class="vp-select">
+            <option>Fire</option>
+            <option>Medical</option>
+            <option>Crime</option>
+            <option>Flood</option>
+            <option>Power Outage</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="vp-form-label">Description</label>
+          <textarea class="vp-textarea" placeholder="Describe what is happening..."></textarea>
+        </div>
+        <div>
+          <!-- LOCATION INPUT SECTION -->
+          <label class="vp-form-label">Location</label>
+          <div class="vp-location-box" id="location-box">
+            <input class="vp-input vp-location-input" id="location-input" type="text" placeholder="Search city, area, or landmark..." autocomplete="off">
+            <div class="vp-location-menu" id="location-menu" role="listbox" aria-label="Location suggestions"></div>
+          </div>
+        </div>
+        <div>
+          <!-- MEDIA UPLOAD SECTION -->
+          <label class="vp-form-label">Media Upload (Optional)</label>
+          <div class="vp-media-stack">
+            <label class="vp-media-drop" id="media-drop">
+              <div>
+                <div class="vp-upload-label">Image Or Video</div>
+                <div class="vp-upload-hint">Drag & drop media or upload from your device</div>
+              </div>
+              <input id="media-input" type="file" accept="image/*,video/*">
+              <span class="vp-upload-button">Upload From Device</span>
+            </label>
+            <button class="vp-media-drop vp-media-capture-trigger" id="camera-open-btn" type="button">
+              <div>
+                <div class="vp-upload-label">Live Capture</div>
+                <div class="vp-upload-hint">Open camera preview to capture photo or record short video</div>
+              </div>
+              <span class="vp-upload-button">Live Capture</span>
+            </button>
+            <div class="vp-camera-panel" id="camera-panel" hidden>
+              <div class="vp-camera-preview-shell">
+                <video id="camera-preview" autoplay playsinline muted></video>
+                <div class="vp-camera-overlay" id="camera-overlay">Camera is live</div>
+              </div>
+              <div class="vp-camera-controls">
+                <button class="vp-action-help" id="capture-photo-btn" type="button">Capture Photo</button>
+                <button class="vp-action-assign" id="record-video-btn" type="button">Start Video</button>
+                <button class="vp-action-assign" id="stop-camera-btn" type="button">Stop Camera</button>
+              </div>
+            </div>
+          </div>
+          <div class="vp-media-preview" id="media-preview" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="vp-report-actions">
+        <button class="vp-form-submit" id="report-submit-btn">Submit Incident</button>
+      </div>
+    </div>
+    <div class="vp-report-modal" id="report-success-modal" aria-hidden="true">
+      <div class="vp-report-modal-card">
+        <div class="vp-report-modal-header">
+          <div class="vp-report-modal-icon">✓</div>
+          <div class="vp-report-modal-title">Report Submitted</div>
+        </div>
+        <div class="vp-report-modal-message">
+          Your emergency report has been submitted successfully. Our response team is now processing your incident. You can track updates on the dashboard.
+        </div>
+        <button class="vp-report-modal-close" id="report-modal-close" type="button">Close</button>
+      </div>
+    </div>
+    </section>
+  </main>
+</div>
+<script src="citizen-ui.js"></script>
+<script>
+  // THIS IS REPORT PAGE SCRIPT
+  // HANDLE LOCATION INPUT
+  const locationInput = document.getElementById('location-input');
+  const locationMenu = document.getElementById('location-menu');
+  const locationBox = document.getElementById('location-box');
+  let selectedSuggestionIndex = -1;
+
+  const indiaLocations = [
+    { name: 'Connaught Place, New Delhi, Delhi, India', kind: 'area' },
+    { name: 'India Gate, New Delhi, Delhi, India', kind: 'landmark' },
+    { name: 'Chandni Chowk, Old Delhi, Delhi, India', kind: 'market' },
+    { name: 'Karol Bagh, New Delhi, Delhi, India', kind: 'area' },
+    { name: 'Bandra Kurla Complex, Mumbai, Maharashtra, India', kind: 'business district' },
+    { name: 'Andheri West, Mumbai, Maharashtra, India', kind: 'area' },
+    { name: 'Linking Road, Bandra, Mumbai, Maharashtra, India', kind: 'street' },
+    { name: 'Powai, Mumbai, Maharashtra, India', kind: 'area' },
+    { name: 'Marine Drive, Mumbai, Maharashtra, India', kind: 'landmark' },
+    { name: 'Dharavi, Mumbai, Maharashtra, India', kind: 'area' },
+    { name: 'MG Road, Bengaluru, Karnataka, India', kind: 'street' },
+    { name: 'Whitefield, Bengaluru, Karnataka, India', kind: 'area' },
+    { name: 'Koramangala 5th Block, Bengaluru, Karnataka, India', kind: 'area' },
+    { name: 'Brigade Road, Bengaluru, Karnataka, India', kind: 'street' },
+    { name: 'Commercial Street, Bengaluru, Karnataka, India', kind: 'street' },
+    { name: 'Hitech City, Hyderabad, Telangana, India', kind: 'area' },
+    { name: 'Charminar, Hyderabad, Telangana, India', kind: 'landmark' },
+    { name: 'Banjara Hills Road No 12, Hyderabad, Telangana, India', kind: 'street' },
+    { name: 'Kondapur, Hyderabad, Telangana, India', kind: 'area' },
+    { name: 'Park Street, Kolkata, West Bengal, India', kind: 'street' },
+    { name: 'Howrah Station, Kolkata, West Bengal, India', kind: 'landmark' },
+    { name: 'Salt Lake Sector V, Kolkata, West Bengal, India', kind: 'area' },
+    { name: 'T Nagar, Chennai, Tamil Nadu, India', kind: 'area' },
+    { name: 'Pondy Bazaar, Chennai, Tamil Nadu, India', kind: 'market' },
+    { name: 'Anna Salai, Chennai, Tamil Nadu, India', kind: 'street' },
+    { name: 'Lulu Mall, Kochi, Kerala, India', kind: 'shop' },
+    { name: 'MG Road, Kochi, Kerala, India', kind: 'street' },
+    { name: 'Civil Lines, Jaipur, Rajasthan, India', kind: 'area' },
+    { name: 'Johari Bazaar, Jaipur, Rajasthan, India', kind: 'market' },
+    { name: 'Hazratganj, Lucknow, Uttar Pradesh, India', kind: 'area' },
+    { name: 'Aminabad, Lucknow, Uttar Pradesh, India', kind: 'market' },
+    { name: 'Godowlia Chowk, Varanasi, Uttar Pradesh, India', kind: 'area' },
+    { name: 'Assi Ghat, Varanasi, Uttar Pradesh, India', kind: 'landmark' },
+    { name: 'Katra, Prayagraj, Uttar Pradesh, India', kind: 'area' },
+    { name: 'Sector 18 Market, Noida, Uttar Pradesh, India', kind: 'market' },
+    { name: 'Raj Nagar Extension, Ghaziabad, Uttar Pradesh, India', kind: 'area' },
+    { name: 'Sectors 14 Market, Gurugram, Haryana, India', kind: 'market' },
+    { name: 'Cyber Hub, Gurugram, Haryana, India', kind: 'landmark' },
+    { name: 'Elante Mall, Chandigarh, Chandigarh, India', kind: 'shop' },
+    { name: 'Laxmi Road, Pune, Maharashtra, India', kind: 'street' },
+    { name: 'Hinjawadi Phase 2, Pune, Maharashtra, India', kind: 'area' },
+    { name: 'Sayajigunj, Vadodara, Gujarat, India', kind: 'area' },
+    { name: 'Law Garden Road, Ahmedabad, Gujarat, India', kind: 'street' },
+    { name: 'Lal Darwaja, Ahmedabad, Gujarat, India', kind: 'market' },
+    { name: 'Rajwada, Indore, Madhya Pradesh, India', kind: 'landmark' },
+    { name: 'Vijay Nagar, Indore, Madhya Pradesh, India', kind: 'area' },
+    { name: 'Chowk Bazaar, Bhopal, Madhya Pradesh, India', kind: 'market' },
+    { name: 'Main Road, Ranchi, Jharkhand, India', kind: 'street' },
+    { name: 'Kanke Road, Ranchi, Jharkhand, India', kind: 'street' },
+    { name: 'Fraser Road, Patna, Bihar, India', kind: 'street' },
+    { name: 'Boring Road, Patna, Bihar, India', kind: 'area' },
+    { name: 'Fancy Bazaar, Guwahati, Assam, India', kind: 'market' },
+    { name: 'GS Road, Guwahati, Assam, India', kind: 'street' },
+    { name: 'Mall Road, Shimla, Himachal Pradesh, India', kind: 'street' },
+    { name: 'Dalhousie Chowk, Kolkata, West Bengal, India', kind: 'area' },
+    { name: 'Panjrapole Char Rasta, Ahmedabad, Gujarat, India', kind: 'landmark' },
+    { name: 'Malleswaram 8th Cross, Bengaluru, Karnataka, India', kind: 'street' },
+    { name: 'Bada Bazaar, Gangtok, Sikkim, India', kind: 'market' },
+    { name: 'MG Marg, Gangtok, Sikkim, India', kind: 'street' },
+    { name: 'Nongpoh Bazaar, Ri-Bhoi, Meghalaya, India', kind: 'town' },
+    { name: 'Aizawl Main Market, Aizawl, Mizoram, India', kind: 'market' },
+    { name: 'Itanagar Market, Itanagar, Arunachal Pradesh, India', kind: 'market' },
+    { name: 'Kohima Local Ground, Kohima, Nagaland, India', kind: 'landmark' },
+    { name: 'Village Bhujiyaghat, Nainital, Uttarakhand, India', kind: 'village' },
+    { name: 'Village Anegundi, Koppal, Karnataka, India', kind: 'village' },
+    { name: 'Village Mawlynnong, East Khasi Hills, Meghalaya, India', kind: 'village' },
+    { name: 'Village Hodka, Kutch, Gujarat, India', kind: 'village' },
+    { name: 'Village Khonoma, Kohima, Nagaland, India', kind: 'village' },
+    { name: 'Village Raghurajpur, Puri, Odisha, India', kind: 'village' },
+    { name: 'Village Hampi Bazaar Street, Vijayanagara, Karnataka, India', kind: 'street' },
+    { name: 'Village Majuli Ferry Ghat, Majuli, Assam, India', kind: 'landmark' },
+    { name: 'Subzi Mandi Chowk, Jalandhar, Punjab, India', kind: 'market' },
+    { name: 'Sardar Patel Marg, Jaipur, Rajasthan, India', kind: 'street' },
+    { name: 'Khau Galli, Ghatkopar, Mumbai, Maharashtra, India', kind: 'shop' },
+    { name: 'Saravana Stores, T Nagar, Chennai, Tamil Nadu, India', kind: 'shop' },
+    { name: 'Khan Market, New Delhi, Delhi, India', kind: 'shop' },
+    { name: 'New Market, Bhopal, Madhya Pradesh, India', kind: 'shop' },
+    { name: 'Koti Sultan Bazaar, Hyderabad, Telangana, India', kind: 'market' }
+  ];
+
+  const indexedIndiaLocations = indiaLocations.map((item) => ({
+    ...item,
+    normalized: item.name.toLowerCase()
+  }));
+
+  function locationScore(item, query) {
+    const q = query.toLowerCase();
+    const words = q.split(/\s+/).filter(Boolean);
+    let score = 0;
+
+    if (item.normalized.startsWith(q)) score += 120;
+    const idx = item.normalized.indexOf(q);
+    if (idx >= 0) score += Math.max(0, 90 - idx);
+
+    if (words.length && words.every((word) => item.normalized.includes(word))) {
+      score += 24;
+    }
+
+    if (item.kind === 'street' || item.kind === 'landmark' || item.kind === 'shop') {
+      score += 8;
+    }
+
+    return score;
+  }
+
+  function setActiveSuggestion(index) {
+    const options = Array.from(locationMenu.querySelectorAll('.vp-location-item'));
+    options.forEach((option, idx) => {
+      option.classList.toggle('active', idx === index);
+    });
+    selectedSuggestionIndex = index;
+  }
+
+  function applyActiveSuggestion() {
+    const options = Array.from(locationMenu.querySelectorAll('.vp-location-item'));
+    if (selectedSuggestionIndex < 0 || selectedSuggestionIndex >= options.length) return;
+    const selected = options[selectedSuggestionIndex];
+    locationInput.value = selected.getAttribute('data-name') || selected.textContent || '';
+    locationMenu.classList.remove('active');
+  }
+
+  function renderLocationSuggestions(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      locationMenu.classList.remove('active');
+      locationMenu.innerHTML = '';
+      selectedSuggestionIndex = -1;
+      return;
+    }
+
+    const suggestions = indexedIndiaLocations
+      .filter(item => item.normalized.includes(q))
+      .sort((a, b) => locationScore(b, q) - locationScore(a, q))
+      .slice(0, 8);
+
+    if (!suggestions.length) {
+      locationMenu.classList.remove('active');
+      locationMenu.innerHTML = '';
+      selectedSuggestionIndex = -1;
+      return;
+    }
+
+    locationMenu.innerHTML = suggestions
+      .map(item => `<button type="button" class="vp-location-item" data-name="${item.name}">${item.name}<span class="vp-location-kind">${item.kind}</span></button>`)
+      .join('');
+
+    locationMenu.classList.add('active');
+    setActiveSuggestion(0);
+  }
+
+  locationInput.addEventListener('input', () => {
+    renderLocationSuggestions(locationInput.value);
+  });
+
+  locationMenu.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const option = target.closest('.vp-location-item');
+    if (!option) return;
+    locationInput.value = option.getAttribute('data-name') || '';
+    locationMenu.classList.remove('active');
+    selectedSuggestionIndex = -1;
+  });
+
+  locationInput.addEventListener('keydown', (event) => {
+    if (!locationMenu.classList.contains('active')) return;
+    const options = Array.from(locationMenu.querySelectorAll('.vp-location-item'));
+    if (!options.length) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      const next = (selectedSuggestionIndex + 1) % options.length;
+      setActiveSuggestion(next);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      const next = (selectedSuggestionIndex - 1 + options.length) % options.length;
+      setActiveSuggestion(next);
+      return;
+    }
+
+    if (event.key === 'Enter' && selectedSuggestionIndex >= 0) {
+      event.preventDefault();
+      applyActiveSuggestion();
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      locationMenu.classList.remove('active');
+      selectedSuggestionIndex = -1;
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!locationBox.contains(event.target)) {
+      locationMenu.classList.remove('active');
+      selectedSuggestionIndex = -1;
+    }
+  });
+
+  // HANDLE MEDIA UPLOAD
+  const mediaInput = document.getElementById('media-input');
+  const mediaDrop = document.getElementById('media-drop');
+  const cameraOpenBtn = document.getElementById('camera-open-btn');
+  const cameraPanel = document.getElementById('camera-panel');
+  const cameraPreview = document.getElementById('camera-preview');
+  const cameraOverlay = document.getElementById('camera-overlay');
+  const capturePhotoBtn = document.getElementById('capture-photo-btn');
+  const recordVideoBtn = document.getElementById('record-video-btn');
+  const stopCameraBtn = document.getElementById('stop-camera-btn');
+  const mediaPreview = document.getElementById('media-preview');
+
+  const captureState = {
+    stream: null,
+    recorder: null,
+    chunks: [],
+    recordingTimer: null,
+    maxRecordMs: 10000
+  };
+
+  function setDropHighlight(drop, active) {
+    drop.classList.toggle('drag-active', active);
+  }
+
+  function isValidMedia(file) {
+    return !!file && (file.type.startsWith('image/') || file.type.startsWith('video/'));
+  }
+
+  function renderMediaPreview(file, sourceLabel) {
+    if (!file) {
+      mediaPreview.textContent = '';
+      return;
+    }
+
+    mediaPreview.innerHTML = '';
+
+    if (file.type.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.alt = 'Selected incident media image';
+      img.className = 'vp-preview-image';
+      img.src = URL.createObjectURL(file);
+      mediaPreview.appendChild(img);
+
+      const detail = document.createElement('div');
+      detail.className = 'vp-media-preview-note';
+      detail.textContent = `${sourceLabel} ready: ${file.name}`;
+      mediaPreview.appendChild(detail);
+      return;
+    }
+
+    if (file.type.startsWith('video/')) {
+      const video = document.createElement('video');
+      video.className = 'vp-preview-video';
+      video.controls = true;
+      video.playsInline = true;
+      video.src = URL.createObjectURL(file);
+      mediaPreview.appendChild(video);
+
+      const detail = document.createElement('div');
+      detail.className = 'vp-media-preview-note';
+      detail.textContent = `${sourceLabel} ready: ${file.name}`;
+      mediaPreview.appendChild(detail);
+      return;
+    }
+
+    showMediaError('Please choose an image or video file.');
+  }
+
+  function showMediaError(message) {
+    mediaPreview.innerHTML = `<span class="vp-media-error">${message}</span>`;
+  }
+
+  function syncFileToInput(file) {
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    mediaInput.files = transfer.files;
+  }
+
+  function setSelectedMedia(file, source) {
+    if (!isValidMedia(file)) {
+      showMediaError('Please choose an image or video file.');
+      return;
+    }
+
+    syncFileToInput(file);
+    renderMediaPreview(file, source === 'device' ? 'Device upload' : 'Live capture');
+  }
+
+  function stopCameraStream() {
+    if (captureState.recordingTimer) {
+      clearTimeout(captureState.recordingTimer);
+      captureState.recordingTimer = null;
+    }
+
+    if (captureState.recorder && captureState.recorder.state === 'recording') {
+      captureState.recorder.stop();
+    }
+
+    if (captureState.stream) {
+      captureState.stream.getTracks().forEach((track) => track.stop());
+      captureState.stream = null;
+    }
+
+    cameraPreview.srcObject = null;
+    cameraPanel.hidden = true;
+    cameraOverlay.textContent = 'Camera stopped';
+    recordVideoBtn.textContent = 'Start Video';
+  }
+
+  async function openCameraStream() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showMediaError('Live camera is not supported on this browser.');
+      return;
+    }
+
+    try {
+      if (captureState.stream) {
+        cameraPanel.hidden = false;
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      captureState.stream = stream;
+      cameraPreview.srcObject = stream;
+      cameraPanel.hidden = false;
+      cameraOverlay.textContent = 'Camera is live';
+    } catch (error) {
+      const denied = error && (error.name === 'NotAllowedError' || error.name === 'SecurityError');
+      if (denied) {
+        showMediaError('Camera access denied. Please allow permission to use Live Capture.');
+        return;
+      }
+      showMediaError('Unable to access camera. Check browser permissions and camera availability.');
+    }
+  }
+
+  function capturePhoto() {
+    if (!captureState.stream) {
+      showMediaError('Open Live Capture first.');
+      return;
+    }
+
+    const track = captureState.stream.getVideoTracks()[0];
+    if (!track) {
+      showMediaError('No camera video track found.');
+      return;
+    }
+
+    const settings = track.getSettings();
+    const width = settings.width || 1280;
+    const height = settings.height || 720;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      showMediaError('Failed to capture photo.');
+      return;
+    }
+
+    ctx.drawImage(cameraPreview, 0, 0, width, height);
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        showMediaError('Failed to process captured photo.');
+        return;
+      }
+      const photoFile = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      setSelectedMedia(photoFile, 'camera');
+      cameraOverlay.textContent = 'Photo captured';
+    }, 'image/jpeg', 0.92);
+  }
+
+  function finalizeVideoCapture() {
+    if (!captureState.chunks.length) {
+      showMediaError('No video captured. Please try again.');
+      return;
+    }
+
+    const videoBlob = new Blob(captureState.chunks, { type: 'video/webm' });
+    const videoFile = new File([videoBlob], `capture-${Date.now()}.webm`, { type: 'video/webm' });
+    captureState.chunks = [];
+    setSelectedMedia(videoFile, 'camera');
+    cameraOverlay.textContent = 'Video captured';
+  }
+
+  function toggleVideoRecording() {
+    if (!captureState.stream) {
+      showMediaError('Open Live Capture first.');
+      return;
+    }
+
+    if (!window.MediaRecorder) {
+      showMediaError('Video recording is not supported on this browser.');
+      return;
+    }
+
+    if (captureState.recorder && captureState.recorder.state === 'recording') {
+      captureState.recorder.stop();
+      return;
+    }
+
+    try {
+      captureState.chunks = [];
+      const preferredOptions = { mimeType: 'video/webm' };
+      if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(preferredOptions.mimeType)) {
+        captureState.recorder = new MediaRecorder(captureState.stream, preferredOptions);
+      } else {
+        captureState.recorder = new MediaRecorder(captureState.stream);
+      }
+      captureState.recorder.addEventListener('dataavailable', (event) => {
+        if (event.data && event.data.size > 0) captureState.chunks.push(event.data);
+      });
+      captureState.recorder.addEventListener('stop', () => {
+        if (captureState.recordingTimer) {
+          clearTimeout(captureState.recordingTimer);
+          captureState.recordingTimer = null;
+        }
+        recordVideoBtn.textContent = 'Start Video';
+        finalizeVideoCapture();
+      });
+      captureState.recorder.start();
+      recordVideoBtn.textContent = 'Stop Video';
+      cameraOverlay.textContent = 'Recording video...';
+
+      captureState.recordingTimer = setTimeout(() => {
+        if (captureState.recorder && captureState.recorder.state === 'recording') {
+          captureState.recorder.stop();
+        }
+      }, captureState.maxRecordMs);
+    } catch (_error) {
+      showMediaError('Unable to start recording on this device/browser.');
+    }
+  }
+
+  mediaInput.addEventListener('change', () => {
+    setSelectedMedia(mediaInput.files && mediaInput.files[0], 'device');
+  });
+  cameraOpenBtn.addEventListener('click', openCameraStream);
+  capturePhotoBtn.addEventListener('click', capturePhoto);
+  recordVideoBtn.addEventListener('click', toggleVideoRecording);
+  stopCameraBtn.addEventListener('click', stopCameraStream);
+
+  window.addEventListener('beforeunload', stopCameraStream);
+
+  ['dragenter', 'dragover'].forEach(name => {
+    mediaDrop.addEventListener(name, (event) => {
+      event.preventDefault();
+      setDropHighlight(mediaDrop, true);
+    });
+  });
+  ['dragleave', 'drop'].forEach(name => {
+    mediaDrop.addEventListener(name, (event) => {
+      event.preventDefault();
+      setDropHighlight(mediaDrop, false);
+    });
+  });
+  mediaDrop.addEventListener('drop', (event) => {
+    const files = event.dataTransfer && event.dataTransfer.files;
+    if (!files || !files[0]) return;
+    const file = files[0];
+    if (!isValidMedia(file)) return;
+    setSelectedMedia(file, 'device');
+  });
+
+  // REPORT SUBMIT MODAL HANDLING
+  const reportSubmitBtn = document.getElementById('report-submit-btn');
+  const reportModal = document.getElementById('report-success-modal');
+  const reportModalClose = document.getElementById('report-modal-close');
+
+  function openReportModal() {
+    reportModal.classList.add('active');
+    reportModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeReportModal() {
+    reportModal.classList.remove('active');
+    reportModal.setAttribute('aria-hidden', 'true');
+  }
+
+  if (reportSubmitBtn) {
+    reportSubmitBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      openReportModal();
+      
+      // Auto-close modal after 4 seconds
+      setTimeout(closeReportModal, 4000);
+    });
+  }
+
+  if (reportModalClose) {
+    reportModalClose.addEventListener('click', closeReportModal);
+  }
+
+  // Close modal when clicking outside of it
+  reportModal.addEventListener('click', (event) => {
+    if (event.target === reportModal) {
+      closeReportModal();
+    }
+  });
+</script>
+</body>
+</html>

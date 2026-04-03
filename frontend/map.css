@@ -1,0 +1,31 @@
+/* ===== MAP PAGE STYLES ===== */
+
+/* MAP SECTION SPACING */
+.vp-map-section {
+  padding-top: 0;
+}
+
+/* MARKER POSITIONING */
+.vp-marker-1 { left: 20%; top: 28%; }
+.vp-marker-2 { left: 44%; top: 38%; }
+.vp-marker-3 { left: 70%; top: 56%; }
+.vp-marker-4 { left: 58%; top: 22%; }
+.vp-marker-5 { left: 32%; top: 68%; }
+.vp-marker-6 { left: 78%; top: 30%; }
+
+/* MAP MODAL STYLING */
+.vp-map-modal-card {
+  position: relative;
+}
+
+.vp-map-modal-list {
+  gap: 12px;
+}
+
+.vp-map-trust-score {
+  color: var(--green-glow);
+}
+
+.vp-map-status-active {
+  color: var(--blue-bright);
+}

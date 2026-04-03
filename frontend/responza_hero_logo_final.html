@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;}
+body{background:transparent;overflow:hidden;}
+.wrap{display:flex;justify-content:center;align-items:center;width:min(620px,100%);height:min(660px,100%);padding:10px 0;background:transparent;}
+
+/* Globe spin */
+@keyframes spinLand{from{transform:translateX(0)}to{transform:translateX(-560px)}}
+@keyframes spinCloud{from{transform:translateX(0)}to{transform:translateX(-560px)}}
+
+/* Heartbeat */
+@keyframes hbSweep{
+  0%{stroke-dashoffset:520;opacity:0}
+  8%{opacity:1}
+  58%{opacity:1}
+  80%{stroke-dashoffset:0;opacity:0}
+  100%{stroke-dashoffset:0;opacity:0}
+}
+
+/* SOS pulse rings */
+@keyframes sosPulse{
+  0%{r:8;opacity:.8;stroke-width:2.5}
+  100%{r:45;opacity:0;stroke-width:.5}
+}
+@keyframes sosText{
+  0%,100%{opacity:1} 50%{opacity:.2}
+}
+
+/* Aid drop */
+@keyframes aidDrop{
+  0%{transform:translateY(-40px);opacity:0}
+  20%{opacity:1}
+  80%{opacity:1}
+  100%{transform:translateY(12px);opacity:0}
+}
+
+/* Person help reach */
+@keyframes handReach{
+  0%,100%{transform:translateY(0px) scaleY(1)}
+  50%{transform:translateY(-6px) scaleY(1.08)}
+}
+
+/* Float variants */
+@keyframes f0{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes f1{0%,100%{transform:translateY(-3px)}50%{transform:translateY(4px)}}
+@keyframes f2{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes f3{0%,100%{transform:translateY(-2px)}50%{transform:translateY(5px)}}
+
+/* Network pulse */
+@keyframes wirePulse{0%,100%{opacity:.12}50%{opacity:.8}}
+
+/* Ray shoot */
+@keyframes rayShoot{
+  0%{stroke-dashoffset:140;opacity:0}
+  22%{opacity:1}
+  65%{opacity:1}
+  88%{stroke-dashoffset:0;opacity:0}
+  100%{opacity:0}
+}
+
+/* Dot burst */
+@keyframes dBurst{
+  0%{opacity:0;r:3}30%{opacity:1;r:7}70%{opacity:1;r:5.5}100%{opacity:0;r:3}
+}
+@keyframes dRing{
+  0%{r:5;opacity:.65}100%{r:28;opacity:0}
+}
+
+/* Shield glow */
+@keyframes shGlow{0%,100%{opacity:.72}50%{opacity:1}}
+
+/* Base flare */
+@keyframes baseFlare{0%,100%{rx:52;opacity:.28}50%{rx:88;opacity:.62}}
+
+/* Atmosphere breathe */
+@keyframes atmoBreathe{0%,100%{opacity:.6}50%{opacity:1}}
+
+/* Cross pulse (medical) */
+@keyframes crossPulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.18)}}
+
+/* Help signal orbit */
+@keyframes orbitCW{from{transform:rotate(0deg) translateX(172px) rotate(0deg)}to{transform:rotate(360deg) translateX(172px) rotate(-360deg)}}
+@keyframes orbitCCW{from{transform:rotate(0deg) translateX(172px) rotate(0deg)}to{transform:rotate(-360deg) translateX(172px) rotate(360deg)}}
+
+/* Connecting line draw */
+@keyframes lineDraw{0%{stroke-dashoffset:200}100%{stroke-dashoffset:0}}
+
+/* Dove / peace symbol float */
+@keyframes doveFloat{
+  0%,100%{transform:translate(0,0) rotate(-8deg)}
+  33%{transform:translate(6px,-8px) rotate(4deg)}
+  66%{transform:translate(-4px,-5px) rotate(-3deg)}
+}
+
+/* Alert triangle flash */
+@keyframes alertFlash{0%,49%,100%{opacity:1}50%,98%{opacity:.08}}
+
+/* Aid box bounce */
+@keyframes aidBounce{
+  0%{transform:translateY(0) rotate(0deg)}
+  30%{transform:translateY(-18px) rotate(8deg)}
+  60%{transform:translateY(-8px) rotate(-4deg)}
+  80%{transform:translateY(-14px) rotate(3deg)}
+  100%{transform:translateY(0) rotate(0deg)}
+}
+
+/* Ripple for help signal */
+@keyframes ripple{
+  0%{r:0;opacity:.7}
+  100%{r:55;opacity:0}
+}
+
+/* Scroll text on banner */
+@keyframes scrollBanner{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+
+/* Hot spot pulse */
+@keyframes hotPulse{0%,100%{r:4.5;opacity:.95}50%{r:8.5;opacity:.4}}
+@keyframes hotRing{0%{r:5;opacity:.6}100%{r:30;opacity:0}}
+
+/* Data traveling dot */
+@keyframes dataDot{0%{offset-distance:0%}100%{offset-distance:100%}}
+
+/* Shake distress */
+@keyframes distress{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+
+</style>
+<div class="wrap">
+<svg width="100%" height="100%" viewBox="0 0 620 660" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+<defs>
+  <!-- Ocean -->
+  <radialGradient id="ocean" cx="36%" cy="30%" r="70%">
+    <stop offset="0%" stop-color="#1e72b0"/>
+    <stop offset="28%" stop-color="#0c3d72"/>
+    <stop offset="62%" stop-color="#071c3a"/>
+    <stop offset="100%" stop-color="#02080f"/>
+  </radialGradient>
+  <!-- Earth shine -->
+  <radialGradient id="eShine" cx="28%" cy="22%" r="52%">
+    <stop offset="0%" stop-color="#cbeeff" stop-opacity=".58"/>
+    <stop offset="45%" stop-color="#5ab5ff" stop-opacity=".2"/>
+    <stop offset="100%" stop-color="#5ab5ff" stop-opacity="0"/>
+  </radialGradient>
+  <!-- Atmosphere layers -->
+  <radialGradient id="atmo" cx="50%" cy="50%" r="50%">
+    <stop offset="70%" stop-color="#0d47a1" stop-opacity="0"/>
+    <stop offset="83%" stop-color="#1976d2" stop-opacity=".32"/>
+    <stop offset="91%" stop-color="#29b6f6" stop-opacity=".62"/>
+    <stop offset="97%" stop-color="#4dd0e1" stop-opacity=".82"/>
+    <stop offset="100%" stop-color="#80deea" stop-opacity=".95"/>
+  </radialGradient>
+  <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+    <stop offset="76%" stop-color="#1565c0" stop-opacity="0"/>
+    <stop offset="88%" stop-color="#1e88e5" stop-opacity=".2"/>
+    <stop offset="100%" stop-color="#29b6f6" stop-opacity=".42"/>
+  </radialGradient>
+  <!-- Shield -->
+  <linearGradient id="shFill" x1="0" y1="0" x2=".15" y2="1">
+    <stop offset="0%" stop-color="#0b1c38" stop-opacity=".94"/>
+    <stop offset="100%" stop-color="#030811" stop-opacity=".97"/>
+  </linearGradient>
+  <linearGradient id="shEdge" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#00e5ff"/>
+    <stop offset="42%" stop-color="#2962ff"/>
+    <stop offset="100%" stop-color="#aa00ff"/>
+  </linearGradient>
+  <!-- HB gradient -->
+  <linearGradient id="hbG" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#ff1744" stop-opacity="0"/>
+    <stop offset="25%" stop-color="#ff1744"/>
+    <stop offset="50%" stop-color="#ff6d00"/>
+    <stop offset="75%" stop-color="#00e676"/>
+    <stop offset="100%" stop-color="#00e676" stop-opacity="0"/>
+  </linearGradient>
+  <!-- Rays -->
+  <linearGradient id="rR" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ff1744" stop-opacity=".95"/><stop offset="100%" stop-color="#ff1744" stop-opacity="0"/></linearGradient>
+  <linearGradient id="rA" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ff6d00" stop-opacity=".95"/><stop offset="100%" stop-color="#ff6d00" stop-opacity="0"/></linearGradient>
+  <linearGradient id="rC" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00e5ff" stop-opacity=".95"/><stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/></linearGradient>
+  <linearGradient id="rP" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#d500f9" stop-opacity=".95"/><stop offset="100%" stop-color="#d500f9" stop-opacity="0"/></linearGradient>
+  <linearGradient id="rG" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00e676" stop-opacity=".95"/><stop offset="100%" stop-color="#00e676" stop-opacity="0"/></linearGradient>
+  <!-- Base glow -->
+  <radialGradient id="baseG" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#2962ff" stop-opacity=".75"/>
+    <stop offset="100%" stop-color="#2962ff" stop-opacity="0"/>
+  </radialGradient>
+  <!-- Aid box gradient -->
+  <linearGradient id="aidG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#ff6d00"/>
+    <stop offset="100%" stop-color="#e65100"/>
+  </linearGradient>
+  <!-- Medical cross gradient -->
+  <linearGradient id="medG" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#ff1744"/>
+    <stop offset="100%" stop-color="#d50000"/>
+  </linearGradient>
+
+  <!-- Filters -->
+  <filter id="fGlow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="8" result="b"/>
+    <feComposite in="SourceGraphic" in2="b" operator="over"/>
+  </filter>
+  <filter id="fSoft" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="5"/>
+  </filter>
+  <filter id="fTiny" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="2.5"/>
+  </filter>
+  <filter id="fAtmo" x="-25%" y="-25%" width="150%" height="150%">
+    <feGaussianBlur stdDeviation="6"/>
+  </filter>
+  <filter id="fCross" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="4"/>
+  </filter>
+
+  <clipPath id="globeClip"><circle cx="310" cy="268" r="132"/></clipPath>
+  <clipPath id="shieldClip">
+    <path d="M310 58 L478 118 L478 335 Q478 455 310 525 Q142 455 142 335 L142 118 Z"/>
+  </clipPath>
+
+  <!-- Wire paths for data -->
+  <path id="w1" d="M310 32 L214 90"/>
+  <path id="w2" d="M310 32 L406 90"/>
+  <path id="w3" d="M214 90 L112 208"/>
+  <path id="w4" d="M406 90 L508 208"/>
+  <path id="w5" d="M112 208 L88 342"/>
+  <path id="w6" d="M508 208 L532 342"/>
+  <path id="w7" d="M88 342 L148 458"/>
+  <path id="w8" d="M532 342 L472 458"/>
+  <path id="w9" d="M148 458 L310 548"/>
+  <path id="w10" d="M472 458 L310 548"/>
+  <path id="w11" d="M214 90 L406 90"/>
+  <path id="w12" d="M112 208 L508 208"/>
+</defs>
+
+<!-- ══ PLATFORM GLOW ══ -->
+<ellipse cx="310" cy="530" rx="55" ry="9" fill="url(#baseG)" opacity=".35">
+  <animate attributeName="rx" values="45;92;45" dur="2.2s" repeatCount="indefinite"/>
+  <animate attributeName="opacity" values=".25;.6;.25" dur="2.2s" repeatCount="indefinite"/>
+</ellipse>
+
+<!-- ══ SHIELD CORONA ══ -->
+<path d="M310 58 L478 118 L478 335 Q478 455 310 525 Q142 455 142 335 L142 118 Z"
+      fill="#1a4fff" fill-opacity=".06" filter="url(#fGlow)">
+  <animate attributeName="fill-opacity" values=".04;.14;.04" dur="3s" repeatCount="indefinite"/>
+</path>
+
+<!-- ══ SHIELD ══ -->
+<path d="M310 58 L478 118 L478 335 Q478 455 310 525 Q142 455 142 335 L142 118 Z" fill="url(#shFill)"/>
+<path d="M310 76 L460 130 L460 335 Q460 442 310 506 Q160 442 160 335 L160 130 Z"
+      fill="none" stroke="#00e5ff" stroke-width=".7" stroke-opacity=".15"/>
+<path d="M310 58 L478 118 L478 335 Q478 455 310 525 Q142 455 142 335 L142 118 Z"
+      fill="none" stroke="url(#shEdge)" stroke-width="3" filter="url(#fGlow)">
+  <animate attributeName="opacity" values=".72;1;.72" dur="2.5s" repeatCount="indefinite"/>
+</path>
+
+<!-- ══ EARTH HALO ══ -->
+<circle cx="310" cy="268" r="162" fill="url(#halo)" filter="url(#fAtmo)" opacity=".65">
+  <animate attributeName="opacity" values=".5;.9;.5" dur="3.2s" repeatCount="indefinite"/>
+</circle>
+<circle cx="310" cy="268" r="142" fill="url(#atmo)" filter="url(#fSoft)" opacity=".88">
+  <animate attributeName="opacity" values=".68;1;.68" dur="3.2s" repeatCount="indefinite"/>
+</circle>
+
+<!-- ══ GLOBE BODY ══ -->
+<circle cx="310" cy="268" r="132" fill="url(#ocean)"/>
+<g clip-path="url(#globeClip)">
+  <g style="animation:spinLand 9s linear infinite">
+    <!-- Continents Pass 1 -->
+    <!-- Europe -->
+    <ellipse cx="286" cy="218" rx="20" ry="15" fill="#2d8a4e" fill-opacity=".92"/>
+    <ellipse cx="274" cy="208" rx="12" ry="10" fill="#2d8a4e" fill-opacity=".82"/>
+    <ellipse cx="298" cy="212" rx="8" ry="6" fill="#3a9e5c" fill-opacity=".78"/>
+    <ellipse cx="278" cy="200" rx="7" ry="13" fill="#2d8a4e" fill-opacity=".72"/>
+    <ellipse cx="264" cy="204" rx="5" ry="8" fill="#2d8a4e" fill-opacity=".66"/>
+    <!-- Africa -->
+    <ellipse cx="292" cy="256" rx="24" ry="42" fill="#3a9e5c" fill-opacity=".9"/>
+    <ellipse cx="286" cy="246" rx="18" ry="25" fill="#2d8a4e" fill-opacity=".86"/>
+    <ellipse cx="298" cy="290" rx="16" ry="14" fill="#3a9e5c" fill-opacity=".76"/>
+    <ellipse cx="288" cy="303" rx="10" ry="10" fill="#2d8a4e" fill-opacity=".66"/>
+    <ellipse cx="316" cy="288" rx="5" ry="9" fill="#2d8a4e" fill-opacity=".7"/>
+    <!-- Middle East / Desert -->
+    <ellipse cx="322" cy="240" rx="16" ry="12" fill="#c8a84b" fill-opacity=".76"/>
+    <!-- Asia -->
+    <ellipse cx="355" cy="226" rx="38" ry="27" fill="#2d8a4e" fill-opacity=".88"/>
+    <ellipse cx="376" cy="238" rx="22" ry="18" fill="#3a9e5c" fill-opacity=".80"/>
+    <ellipse cx="392" cy="248" rx="14" ry="12" fill="#2d8a4e" fill-opacity=".72"/>
+    <ellipse cx="358" cy="232" rx="14" ry="5" fill="#e8f4f8" fill-opacity=".42"/>
+    <ellipse cx="348" cy="258" rx="12" ry="20" fill="#3a9e5c" fill-opacity=".82"/>
+    <ellipse cx="390" cy="263" rx="10" ry="15" fill="#2d8a4e" fill-opacity=".72"/>
+    <ellipse cx="410" cy="236" rx="6" ry="10" fill="#2d8a4e" fill-opacity=".70"/>
+    <!-- Greenland -->
+    <ellipse cx="238" cy="193" rx="16" ry="12" fill="#d6eef8" fill-opacity=".5"/>
+    <!-- North America -->
+    <ellipse cx="216" cy="233" rx="22" ry="36" fill="#2d8a4e" fill-opacity=".86"/>
+    <ellipse cx="208" cy="226" rx="16" ry="18" fill="#3a9e5c" fill-opacity=".78"/>
+    <ellipse cx="202" cy="253" rx="12" ry="22" fill="#2d8a4e" fill-opacity=".72"/>
+    <ellipse cx="210" cy="228" rx="8" ry="4" fill="#e8f4f8" fill-opacity=".4"/>
+    <ellipse cx="216" cy="276" rx="6" ry="10" fill="#3a9e5c" fill-opacity=".70"/>
+    <!-- South America -->
+    <ellipse cx="230" cy="303" rx="18" ry="35" fill="#3a9e5c" fill-opacity=".85"/>
+    <ellipse cx="226" cy="318" rx="14" ry="22" fill="#2d8a4e" fill-opacity=".78"/>
+    <ellipse cx="222" cy="303" rx="4" ry="12" fill="#e8f4f8" fill-opacity=".38"/>
+    <!-- Australia -->
+    <ellipse cx="392" cy="300" rx="22" ry="16" fill="#c8a84b" fill-opacity=".78"/>
+    <ellipse cx="386" cy="306" rx="14" ry="10" fill="#a08030" fill-opacity=".65"/>
+    <!-- Antarctica / Arctic -->
+    <ellipse cx="310" cy="395" rx="92" ry="14" fill="#e8f4f8" fill-opacity=".38"/>
+    <ellipse cx="310" cy="144" rx="82" ry="12" fill="#d6eef8" fill-opacity=".36"/>
+    <!-- Latitude lines -->
+    <line x1="178" y1="268" x2="738" y2="268" stroke="#4fc3f7" stroke-width=".5" stroke-opacity=".2"/>
+    <line x1="178" y1="236" x2="738" y2="236" stroke="#4fc3f7" stroke-width=".35" stroke-opacity=".12"/>
+    <line x1="178" y1="300" x2="738" y2="300" stroke="#4fc3f7" stroke-width=".35" stroke-opacity=".12"/>
+    <!-- Pass 2 (offset 560) -->
+    <ellipse cx="846" cy="218" rx="20" ry="15" fill="#2d8a4e" fill-opacity=".92"/>
+    <ellipse cx="834" cy="208" rx="12" ry="10" fill="#2d8a4e" fill-opacity=".82"/>
+    <ellipse cx="858" cy="212" rx="8" ry="6" fill="#3a9e5c" fill-opacity=".78"/>
+    <ellipse cx="838" cy="200" rx="7" ry="13" fill="#2d8a4e" fill-opacity=".72"/>
+    <ellipse cx="824" cy="204" rx="5" ry="8" fill="#2d8a4e" fill-opacity=".66"/>
+    <ellipse cx="852" cy="256" rx="24" ry="42" fill="#3a9e5c" fill-opacity=".9"/>
+    <ellipse cx="846" cy="246" rx="18" ry="25" fill="#2d8a4e" fill-opacity=".86"/>
+    <ellipse cx="858" cy="290" rx="16" ry="14" fill="#3a9e5c" fill-opacity=".76"/>
+    <ellipse cx="848" cy="303" rx="10" ry="10" fill="#2d8a4e" fill-opacity=".66"/>
+    <ellipse cx="876" cy="288" rx="5" ry="9" fill="#2d8a4e" fill-opacity=".7"/>
+    <ellipse cx="882" cy="240" rx="16" ry="12" fill="#c8a84b" fill-opacity=".76"/>
+    <ellipse cx="915" cy="226" rx="38" ry="27" fill="#2d8a4e" fill-opacity=".88"/>
+    <ellipse cx="936" cy="238" rx="22" ry="18" fill="#3a9e5c" fill-opacity=".80"/>
+    <ellipse cx="952" cy="248" rx="14" ry="12" fill="#2d8a4e" fill-opacity=".72"/>
+    <ellipse cx="918" cy="232" rx="14" ry="5" fill="#e8f4f8" fill-opacity=".42"/>
+    <ellipse cx="908" cy="258" rx="12" ry="20" fill="#3a9e5c" fill-opacity=".82"/>
+    <ellipse cx="950" cy="263" rx="10" ry="15" fill="#2d8a4e" fill-opacity=".72"/>
+    <ellipse cx="970" cy="236" rx="6" ry="10" fill="#2d8a4e" fill-opacity=".70"/>
+    <ellipse cx="798" cy="193" rx="16" ry="12" fill="#d6eef8" fill-opacity=".5"/>
+    <ellipse cx="776" cy="233" rx="22" ry="36" fill="#2d8a4e" fill-opacity=".86"/>
+    <ellipse cx="768" cy="226" rx="16" ry="18" fill="#3a9e5c" fill-opacity=".78"/>
+    <ellipse cx="762" cy="253" rx="12" ry="22" fill="#2d8a4e" fill-opacity=".72"/>
+    <ellipse cx="770" cy="228" rx="8" ry="4" fill="#e8f4f8" fill-opacity=".4"/>
+    <ellipse cx="776" cy="276" rx="6" ry="10" fill="#3a9e5c" fill-opacity=".70"/>
+    <ellipse cx="790" cy="303" rx="18" ry="35" fill="#3a9e5c" fill-opacity=".85"/>
+    <ellipse cx="786" cy="318" rx="14" ry="22" fill="#2d8a4e" fill-opacity=".78"/>
+    <ellipse cx="782" cy="303" rx="4" ry="12" fill="#e8f4f8" fill-opacity=".38"/>
+    <ellipse cx="952" cy="300" rx="22" ry="16" fill="#c8a84b" fill-opacity=".78"/>
+    <ellipse cx="946" cy="306" rx="14" ry="10" fill="#a08030" fill-opacity=".65"/>
+    <ellipse cx="870" cy="395" rx="92" ry="14" fill="#e8f4f8" fill-opacity=".38"/>
+    <ellipse cx="870" cy="144" rx="82" ry="12" fill="#d6eef8" fill-opacity=".36"/>
+  </g>
+  <!-- Clouds -->
+  <g style="animation:spinCloud 13s linear infinite" opacity=".2">
+    <ellipse cx="258" cy="208" rx="28" ry="7" fill="white"/>
+    <ellipse cx="328" cy="233" rx="22" ry="6" fill="white"/>
+    <ellipse cx="378" cy="218" rx="26" ry="7" fill="white"/>
+    <ellipse cx="218" cy="253" rx="18" ry="5" fill="white"/>
+    <ellipse cx="415" cy="253" rx="20" ry="6" fill="white"/>
+    <ellipse cx="278" cy="318" rx="24" ry="6" fill="white"/>
+    <ellipse cx="818" cy="208" rx="28" ry="7" fill="white"/>
+    <ellipse cx="888" cy="233" rx="22" ry="6" fill="white"/>
+    <ellipse cx="938" cy="218" rx="26" ry="7" fill="white"/>
+    <ellipse cx="778" cy="253" rx="18" ry="5" fill="white"/>
+    <ellipse cx="975" cy="253" rx="20" ry="6" fill="white"/>
+    <ellipse cx="838" cy="318" rx="24" ry="6" fill="white"/>
+  </g>
+  <!-- City lights -->
+  <g opacity=".58" filter="url(#fTiny)">
+    <circle cx="182" cy="222" r="2" fill="#fff9c4"/>
+    <circle cx="190" cy="232" r="1.5" fill="#ffe082"/>
+    <circle cx="178" cy="238" r="1.5" fill="#fff9c4"/>
+    <circle cx="186" cy="225" r="1" fill="#fff59d"/>
+    <circle cx="194" cy="244" r="1.5" fill="#fff9c4"/>
+    <circle cx="172" cy="250" r="1" fill="#ffe082"/>
+    <circle cx="184" cy="258" r="2" fill="#fff9c4"/>
+    <circle cx="198" cy="248" r="1" fill="#fff59d"/>
+    <circle cx="176" cy="265" r="1.5" fill="#fff9c4"/>
+    <circle cx="188" cy="272" r="1" fill="#ffe082"/>
+    <circle cx="200" cy="262" r="1.5" fill="#fff9c4"/>
+    <circle cx="166" cy="255" r="1" fill="#ffe082"/>
+    <circle cx="174" cy="275" r="1.2" fill="#fff9c4"/>
+  </g>
+</g>
+<!-- Atmosphere + shine -->
+<circle cx="310" cy="268" r="132" fill="url(#atmo)"/>
+<circle cx="310" cy="268" r="132" fill="url(#eShine)"/>
+<circle cx="310" cy="268" r="132" fill="none" stroke="#4fc3f7" stroke-width="1.3" stroke-opacity=".6"/>
+<ellipse cx="268" cy="224" rx="34" ry="20" fill="white" fill-opacity=".055"/>
+
+<!-- ══ CRISIS HOTSPOTS ══ -->
+<circle cx="293" cy="246" r="4.5" fill="#ff1744">
+  <animate attributeName="r" values="4;9;4" dur="1.1s" repeatCount="indefinite"/>
+  <animate attributeName="opacity" values=".95;.3;.95" dur="1.1s" repeatCount="indefinite"/>
+</circle>
+<circle cx="293" cy="246" r="5" fill="#ff1744" fill-opacity="0">
+  <animate attributeName="r" values="5;32;5" dur="1.1s" repeatCount="indefinite"/>
+  <animate attributeName="fill-opacity" values=".5;0;.5" dur="1.1s" repeatCount="indefinite"/>
+</circle>
+<circle cx="324" cy="263" r="4" fill="#ff6d00">
+  <animate attributeName="r" values="3.5;8;3.5" dur="1.5s" begin=".45s" repeatCount="indefinite"/>
+  <animate attributeName="opacity" values=".9;.3;.9" dur="1.5s" begin=".45s" repeatCount="indefinite"/>
+</circle>
+<circle cx="324" cy="263" r="4" fill="#ff6d00" fill-opacity="0">
+  <animate attributeName="r" values="4;28;4" dur="1.5s" begin=".45s" repeatCount="indefinite"/>
+  <animate attributeName="fill-opacity" values=".45;0;.45" dur="1.5s" begin=".45s" repeatCount="indefinite"/>
+</circle>
+<circle cx="266" cy="258" r="3.5" fill="#ff1744">
+  <animate attributeName="r" values="3;7;3" dur="1.9s" begin=".9s" repeatCount="indefinite"/>
+  <animate attributeName="opacity" values=".85;.25;.85" dur="1.9s" begin=".9s" repeatCount="indefinite"/>
+</circle>
+<circle cx="266" cy="258" r="3" fill="#ff1744" fill-opacity="0">
+  <animate attributeName="r" values="3;24;3" dur="1.9s" begin=".9s" repeatCount="indefinite"/>
+  <animate attributeName="fill-opacity" values=".4;0;.4" dur="1.9s" begin=".9s" repeatCount="indefinite"/>
+</circle>
+
+<!-- ══ SOS SIGNAL (on globe) ══ -->
+<text x="310" y="340" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold"
+      fill="#ff1744" letter-spacing="4" style="animation:sosText 0.85s ease-in-out infinite">SOS</text>
+<!-- SOS expanding rings -->
+<circle cx="310" cy="336" r="8" fill="none" stroke="#ff1744" stroke-width="2.5">
+  <animate attributeName="r" values="8;46;8" dur="1.8s" repeatCount="indefinite"/>
+  <animate attributeName="opacity" values=".8;0;.8" dur="1.8s" repeatCount="indefinite"/>
+  <animate attributeName="stroke-width" values="2.5;.4;2.5" dur="1.8s" repeatCount="indefinite"/>
+</circle>
+<circle cx="310" cy="336" r="8" fill="none" stroke="#ff1744" stroke-width="2">
+  <animate attributeName="r" values="8;46;8" dur="1.8s" begin=".6s" repeatCount="indefinite"/>
+  <animate attributeName="opacity" values=".6;0;.6" dur="1.8s" begin=".6s" repeatCount="indefinite"/>
+  <animate attributeName="stroke-width" values="2;.3;2" dur="1.8s" begin=".6s" repeatCount="indefinite"/>
+</circle>
+
+<!-- ══ HEARTBEAT LINE ══ -->
+<path d="M146 390 L188 390 L208 350 L228 432 L250 358 L272 396 L288 396 L302 390 L322 390 L344 350 L366 432 L386 390 L474 390"
+      fill="none" stroke="#00e676" stroke-width=".9" stroke-opacity=".12" clip-path="url(#shieldClip)"/>
+<path d="M146 390 L188 390 L208 350 L228 432 L250 358 L272 396 L288 396 L302 390 L322 390 L344 350 L366 432 L386 390 L474 390"
+      fill="none" stroke="url(#hbG)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"
+      stroke-dasharray="520" stroke-dashoffset="520" clip-path="url(#shieldClip)">
+  <animate attributeName="stroke-dashoffset" values="520;0;0;520" dur="1.65s" repeatCount="indefinite"
+           keyTimes="0;0.55;0.72;1" calcMode="spline" keySplines="0.4 0 0.2 1;0 0 0 0;0.4 0 0.2 1"/>
+</path>
+
+<!-- ══ MEDICAL CROSS (inside shield, below globe) ══ -->
+<g style="animation:crossPulse 1.4s ease-in-out infinite" transform-origin="310 435">
+  <!-- Glow behind -->
+  <rect x="298" y="422" width="24" height="24" rx="4" fill="#ff1744" fill-opacity=".15" filter="url(#fCross)"/>
+  <!-- Cross shape -->
+  <rect x="306" y="422" width="8" height="24" rx="2" fill="#ff1744" fill-opacity=".9"/>
+  <rect x="298" y="430" width="24" height="8" rx="2" fill="#ff1744" fill-opacity=".9"/>
+</g>
+
+<!-- ══ FLOATING AID BOX (left side of shield) ══ -->
+<g style="animation:aidBounce 2.8s ease-in-out infinite" transform-origin="175 310">
+  <!-- Box body -->
+  <rect x="158" y="296" width="34" height="28" rx="4" fill="url(#aidG)" fill-opacity=".92"/>
+  <!-- Box lid -->
+  <rect x="155" y="290" width="40" height="10" rx="3" fill="#ff8f00" fill-opacity=".95"/>
+  <!-- Cross on box -->
+  <rect x="173" y="295" width="4" height="18" rx="1" fill="white" fill-opacity=".9"/>
+  <rect x="165" y="302" width="20" height="4" rx="1" fill="white" fill-opacity=".9"/>
+  <!-- Handle -->
+  <path d="M172 290 Q180 282 188 290" fill="none" stroke="#ff8f00" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Glow under box -->
+  <ellipse cx="175" cy="326" rx="16" ry="4" fill="#ff6d00" fill-opacity=".3" filter="url(#fTiny)"/>
+</g>
+
+<!-- ══ ALERT TRIANGLE (right side) ══ -->
+<g style="animation:alertFlash 1.2s ease-in-out infinite" transform-origin="445 310">
+  <polygon points="445,285 427,318 463,318" fill="#ff6d00" fill-opacity=".15" filter="url(#fTiny)"/>
+  <polygon points="445,288 430,315 460,315" fill="none" stroke="#ff6d00" stroke-width="2.2"/>
+  <text x="445" y="310" text-anchor="middle" font-family="monospace" font-size="13" font-weight="bold" fill="#ff6d00">!</text>
+</g>
+
+<!-- ══ DOVE / PEACE SYMBOL (top inside shield) ══ -->
+<g style="animation:doveFloat 3.5s ease-in-out infinite" transform-origin="310 110">
+  <!-- Dove body -->
+  <ellipse cx="310" cy="112" rx="14" ry="8" fill="white" fill-opacity=".88"/>
+  <!-- Dove head -->
+  <circle cx="322" cy="109" r="5" fill="white" fill-opacity=".9"/>
+  <!-- Dove wing -->
+  <path d="M308 108 Q296 98 282 102 Q296 108 308 114Z" fill="white" fill-opacity=".75"/>
+  <!-- Olive branch -->
+  <path d="M317 114 Q328 122 338 118" fill="none" stroke="#69f0ae" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="328" cy="120" r="2.5" fill="#69f0ae" fill-opacity=".9"/>
+  <circle cx="337" cy="117" r="2" fill="#69f0ae" fill-opacity=".8"/>
+  <!-- Dove glow -->
+  <ellipse cx="310" cy="112" rx="20" ry="12" fill="white" fill-opacity=".1" filter="url(#fTiny)"/>
+</g>
+
+<!-- ══ SIGNAL RAYS ══ -->
+<line x1="455" y1="148" x2="558" y2="84" stroke="url(#rR)" stroke-width="2.6" stroke-linecap="round"
+      stroke-dasharray="140" stroke-dashoffset="140">
+  <animate attributeName="stroke-dashoffset" values="140;0;0;140" dur="1.3s" repeatCount="indefinite"
+           keyTimes="0;.45;.7;1" calcMode="spline" keySplines="0.4 0 0.2 1;0 0 0 0;0.4 0 0.2 1"/>
+</line>
+<circle cx="561" cy="82" r="6.5" fill="#ff1744">
+  <animate attributeName="opacity" values="0;1;1;0" dur="1.3s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+  <animate attributeName="r" values="4;8;6;4" dur="1.3s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+</circle>
+<circle cx="561" cy="82" r="5" fill="#ff1744" fill-opacity="0">
+  <animate attributeName="r" values="5;25;25;5" dur="1.3s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+  <animate attributeName="fill-opacity" values="0;.42;0;0" dur="1.3s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+</circle>
+
+<line x1="472" y1="178" x2="572" y2="130" stroke="url(#rA)" stroke-width="2.6" stroke-linecap="round"
+      stroke-dasharray="125" stroke-dashoffset="125">
+  <animate attributeName="stroke-dashoffset" values="125;0;0;125" dur="1.3s" begin=".32s" repeatCount="indefinite"
+           keyTimes="0;.45;.7;1" calcMode="spline" keySplines="0.4 0 0.2 1;0 0 0 0;0.4 0 0.2 1"/>
+</line>
+<circle cx="575" cy="128" r="6.5" fill="#ff6d00">
+  <animate attributeName="opacity" values="0;1;1;0" dur="1.3s" begin=".32s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+  <animate attributeName="r" values="4;8;6;4" dur="1.3s" begin=".32s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+</circle>
+<circle cx="575" cy="128" r="5" fill="#ff6d00" fill-opacity="0">
+  <animate attributeName="r" values="5;25;25;5" dur="1.3s" begin=".32s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+  <animate attributeName="fill-opacity" values="0;.42;0;0" dur="1.3s" begin=".32s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+</circle>
+
+<line x1="480" y1="210" x2="576" y2="176" stroke="url(#rC)" stroke-width="2.6" stroke-linecap="round"
+      stroke-dasharray="110" stroke-dashoffset="110">
+  <animate attributeName="stroke-dashoffset" values="110;0;0;110" dur="1.3s" begin=".64s" repeatCount="indefinite"
+           keyTimes="0;.45;.7;1" calcMode="spline" keySplines="0.4 0 0.2 1;0 0 0 0;0.4 0 0.2 1"/>
+</line>
+<circle cx="578" cy="174" r="6.5" fill="#00e5ff">
+  <animate attributeName="opacity" values="0;1;1;0" dur="1.3s" begin=".64s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+</circle>
+<circle cx="578" cy="174" r="5" fill="#00e5ff" fill-opacity="0">
+  <animate attributeName="r" values="5;25;25;5" dur="1.3s" begin=".64s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+  <animate attributeName="fill-opacity" values="0;.42;0;0" dur="1.3s" begin=".64s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+</circle>
+
+<line x1="478" y1="244" x2="570" y2="226" stroke="url(#rP)" stroke-width="2.6" stroke-linecap="round"
+      stroke-dasharray="100" stroke-dashoffset="100">
+  <animate attributeName="stroke-dashoffset" values="100;0;0;100" dur="1.3s" begin=".96s" repeatCount="indefinite"
+           keyTimes="0;.45;.7;1" calcMode="spline" keySplines="0.4 0 0.2 1;0 0 0 0;0.4 0 0.2 1"/>
+</line>
+<circle cx="572" cy="224" r="6.5" fill="#d500f9">
+  <animate attributeName="opacity" values="0;1;1;0" dur="1.3s" begin=".96s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+</circle>
+<circle cx="572" cy="224" r="5" fill="#d500f9" fill-opacity="0">
+  <animate attributeName="r" values="5;25;25;5" dur="1.3s" begin=".96s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+  <animate attributeName="fill-opacity" values="0;.42;0;0" dur="1.3s" begin=".96s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+</circle>
+
+<line x1="474" y1="278" x2="565" y2="268" stroke="url(#rG)" stroke-width="2.6" stroke-linecap="round"
+      stroke-dasharray="95" stroke-dashoffset="95">
+  <animate attributeName="stroke-dashoffset" values="95;0;0;95" dur="1.3s" begin="1.28s" repeatCount="indefinite"
+           keyTimes="0;.45;.7;1" calcMode="spline" keySplines="0.4 0 0.2 1;0 0 0 0;0.4 0 0.2 1"/>
+</line>
+<circle cx="567" cy="267" r="6.5" fill="#00e676">
+  <animate attributeName="opacity" values="0;1;1;0" dur="1.3s" begin="1.28s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+</circle>
+<circle cx="567" cy="267" r="5" fill="#00e676" fill-opacity="0">
+  <animate attributeName="r" values="5;25;25;5" dur="1.3s" begin="1.28s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+  <animate attributeName="fill-opacity" values="0;.42;0;0" dur="1.3s" begin="1.28s" repeatCount="indefinite" keyTimes="0;.45;.7;1"/>
+</circle>
+
+<!-- ══ 12 PERSON NODES ══ -->
+<!-- Macro: each node has glow circle + body + head + shoulders + pulse ring -->
+
+<!-- N1 top -->
+<g style="animation:f0 2.2s ease-in-out infinite">
+  <circle cx="310" cy="30" r="20" fill="#0c1e3a" stroke="#00e5ff" stroke-width="2.2" filter="url(#fTiny)"/>
+  <circle cx="310" cy="23" r="9" fill="#00e5ff"/>
+  <path d="M292 44 Q310 34 328 44" fill="#00e5ff" fill-opacity=".85"/>
+  <!-- Medical cross on shirt -->
+  <rect x="307" y="36" width="6" height="12" rx="1.5" fill="#ff1744" fill-opacity=".7"/>
+  <rect x="303" y="40" width="14" height="4" rx="1.5" fill="#ff1744" fill-opacity=".7"/>
+  <circle cx="310" cy="30" r="25" fill="none" stroke="#00e5ff" stroke-width=".9">
+    <animate attributeName="r" values="22;32;22" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".5;0;.5" dur="2s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N2 top-left -->
+<g style="animation:f1 2.6s ease-in-out infinite 0.3s">
+  <circle cx="206" cy="86" r="18" fill="#0c1e3a" stroke="#4dd0e1" stroke-width="2" filter="url(#fTiny)"/>
+  <circle cx="206" cy="79" r="8" fill="#4dd0e1"/>
+  <path d="M190 98 Q206 89 222 98" fill="#4dd0e1" fill-opacity=".85"/>
+  <circle cx="206" cy="86" r="22" fill="none" stroke="#4dd0e1" stroke-width=".8">
+    <animate attributeName="r" values="20;29;20" dur="2.4s" begin=".3s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".45;0;.45" dur="2.4s" begin=".3s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N3 top-right -->
+<g style="animation:f2 2.4s ease-in-out infinite 0.6s">
+  <circle cx="414" cy="86" r="18" fill="#0c1e3a" stroke="#4dd0e1" stroke-width="2" filter="url(#fTiny)"/>
+  <circle cx="414" cy="79" r="8" fill="#4dd0e1"/>
+  <path d="M398 98 Q414 89 430 98" fill="#4dd0e1" fill-opacity=".85"/>
+  <circle cx="414" cy="86" r="22" fill="none" stroke="#4dd0e1" stroke-width=".8">
+    <animate attributeName="r" values="20;29;20" dur="2.4s" begin=".6s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".45;0;.45" dur="2.4s" begin=".6s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N4 left-upper — HELPER with reaching hand -->
+<g style="animation:handReach 1.8s ease-in-out infinite">
+  <circle cx="108" cy="200" r="18" fill="#0c1e3a" stroke="#7c4dff" stroke-width="2" filter="url(#fTiny)"/>
+  <circle cx="108" cy="193" r="8" fill="#b388ff"/>
+  <path d="M92 212 Q108 203 124 212" fill="#b388ff" fill-opacity=".85"/>
+  <!-- Reaching arm -->
+  <line x1="124" y1="208" x2="138" y2="200" stroke="#b388ff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="140" cy="199" r="3.5" fill="#b388ff" fill-opacity=".9"/>
+  <circle cx="108" cy="200" r="22" fill="none" stroke="#b388ff" stroke-width=".8">
+    <animate attributeName="r" values="20;30;20" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".45;0;.45" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N5 right-upper — HELPER -->
+<g style="animation:handReach 1.8s ease-in-out infinite 0.9s">
+  <circle cx="512" cy="200" r="18" fill="#0c1e3a" stroke="#7c4dff" stroke-width="2" filter="url(#fTiny)"/>
+  <circle cx="512" cy="193" r="8" fill="#b388ff"/>
+  <path d="M496 212 Q512 203 528 212" fill="#b388ff" fill-opacity=".85"/>
+  <line x1="496" y1="208" x2="482" y2="200" stroke="#b388ff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="480" cy="199" r="3.5" fill="#b388ff" fill-opacity=".9"/>
+  <circle cx="512" cy="200" r="22" fill="none" stroke="#b388ff" stroke-width=".8">
+    <animate attributeName="r" values="20;30;20" dur="1.8s" begin=".9s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".45;0;.45" dur="1.8s" begin=".9s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N6 far-left (distress) -->
+<g style="animation:distress 2.4s ease-in-out infinite 0.5s">
+  <circle cx="78" cy="338" r="18" fill="#0c1e3a" stroke="#ff1744" stroke-width="2" filter="url(#fTiny)"/>
+  <circle cx="78" cy="331" r="8" fill="#ff6b6b"/>
+  <path d="M62 350 Q78 341 94 350" fill="#ff6b6b" fill-opacity=".85"/>
+  <!-- Raised arms (distress) -->
+  <line x1="62" y1="346" x2="50" y2="334" stroke="#ff6b6b" stroke-width="3" stroke-linecap="round"/>
+  <line x1="94" y1="346" x2="106" y2="334" stroke="#ff6b6b" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="78" cy="338" r="22" fill="none" stroke="#ff1744" stroke-width=".8">
+    <animate attributeName="r" values="20;30;20" dur="1.2s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".6;0;.6" dur="1.2s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N7 far-right -->
+<g style="animation:f3 2.8s ease-in-out infinite 1.5s">
+  <circle cx="542" cy="338" r="18" fill="#0c1e3a" stroke="#00e676" stroke-width="2" filter="url(#fTiny)"/>
+  <circle cx="542" cy="331" r="8" fill="#69f0ae"/>
+  <path d="M526 350 Q542 341 558 350" fill="#69f0ae" fill-opacity=".85"/>
+  <circle cx="542" cy="338" r="22" fill="none" stroke="#69f0ae" stroke-width=".8">
+    <animate attributeName="r" values="20;30;20" dur="2.8s" begin="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".4;0;.4" dur="2.8s" begin="1.5s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N8 lower-left (rescued) -->
+<g style="animation:f0 2.4s ease-in-out infinite 0.2s">
+  <circle cx="136" cy="454" r="18" fill="#0c1e3a" stroke="#ff6d00" stroke-width="2" filter="url(#fTiny)"/>
+  <circle cx="136" cy="447" r="8" fill="#ffab40"/>
+  <path d="M120 466 Q136 457 152 466" fill="#ffab40" fill-opacity=".85"/>
+  <circle cx="136" cy="454" r="22" fill="none" stroke="#ffab40" stroke-width=".8">
+    <animate attributeName="r" values="20;30;20" dur="2.4s" begin=".2s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".4;0;.4" dur="2.4s" begin=".2s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N9 lower-right -->
+<g style="animation:f1 2.6s ease-in-out infinite 1.8s">
+  <circle cx="484" cy="454" r="18" fill="#0c1e3a" stroke="#ff6d00" stroke-width="2" filter="url(#fTiny)"/>
+  <circle cx="484" cy="447" r="8" fill="#ffab40"/>
+  <path d="M468 466 Q484 457 500 466" fill="#ffab40" fill-opacity=".85"/>
+  <circle cx="484" cy="454" r="22" fill="none" stroke="#ffab40" stroke-width=".8">
+    <animate attributeName="r" values="20;30;20" dur="2.6s" begin="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".4;0;.4" dur="2.6s" begin="1.8s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N10 bottom -->
+<g style="animation:f2 2.2s ease-in-out infinite 1s">
+  <circle cx="310" cy="560" r="18" fill="#0c1e3a" stroke="#00e5ff" stroke-width="2" filter="url(#fTiny)"/>
+  <circle cx="310" cy="553" r="8" fill="#00e5ff"/>
+  <path d="M294 572 Q310 563 326 572" fill="#00e5ff" fill-opacity=".85"/>
+  <circle cx="310" cy="560" r="22" fill="none" stroke="#00e5ff" stroke-width=".8">
+    <animate attributeName="r" values="20;30;20" dur="2.2s" begin="1s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".45;0;.45" dur="2.2s" begin="1s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N11 left-mid-low -->
+<g style="animation:f3 3s ease-in-out infinite 0.7s">
+  <circle cx="92" cy="462" r="16" fill="#0c1e3a" stroke="#69f0ae" stroke-width="1.8" filter="url(#fTiny)"/>
+  <circle cx="92" cy="456" r="7" fill="#69f0ae"/>
+  <path d="M78 472 Q92 464 106 472" fill="#69f0ae" fill-opacity=".85"/>
+  <circle cx="92" cy="462" r="20" fill="none" stroke="#69f0ae" stroke-width=".7">
+    <animate attributeName="r" values="18;27;18" dur="3s" begin=".7s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".38;0;.38" dur="3s" begin=".7s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- N12 right-mid-low -->
+<g style="animation:f0 2.6s ease-in-out infinite 1.3s">
+  <circle cx="528" cy="462" r="16" fill="#0c1e3a" stroke="#69f0ae" stroke-width="1.8" filter="url(#fTiny)"/>
+  <circle cx="528" cy="456" r="7" fill="#69f0ae"/>
+  <path d="M514 472 Q528 464 542 472" fill="#69f0ae" fill-opacity=".85"/>
+  <circle cx="528" cy="462" r="20" fill="none" stroke="#69f0ae" stroke-width=".7">
+    <animate attributeName="r" values="18;27;18" dur="2.6s" begin="1.3s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values=".38;0;.38" dur="2.6s" begin="1.3s" repeatCount="indefinite"/>
+  </circle>
+</g>
+
+<!-- ══ NETWORK WIRES ══ -->
+<line x1="310" y1="50" x2="224" y2="104" stroke="#00e5ff" stroke-width="1.1">
+  <animate attributeName="stroke-opacity" values=".1;.7;.1" dur="1.7s" repeatCount="indefinite"/>
+</line>
+<line x1="310" y1="50" x2="396" y2="104" stroke="#00e5ff" stroke-width="1.1">
+  <animate attributeName="stroke-opacity" values=".1;.7;.1" dur="1.7s" begin=".22s" repeatCount="indefinite"/>
+</line>
+<line x1="224" y1="104" x2="126" y2="216" stroke="#4dd0e1" stroke-width=".95">
+  <animate attributeName="stroke-opacity" values=".08;.6;.08" dur="1.9s" begin=".44s" repeatCount="indefinite"/>
+</line>
+<line x1="396" y1="104" x2="494" y2="216" stroke="#4dd0e1" stroke-width=".95">
+  <animate attributeName="stroke-opacity" values=".08;.6;.08" dur="1.9s" begin=".66s" repeatCount="indefinite"/>
+</line>
+<line x1="126" y1="216" x2="96" y2="352" stroke="#b388ff" stroke-width=".9">
+  <animate attributeName="stroke-opacity" values=".08;.55;.08" dur="2.1s" begin=".88s" repeatCount="indefinite"/>
+</line>
+<line x1="494" y1="216" x2="524" y2="352" stroke="#b388ff" stroke-width=".9">
+  <animate attributeName="stroke-opacity" values=".08;.55;.08" dur="2.1s" begin="1.1s" repeatCount="indefinite"/>
+</line>
+<line x1="96" y1="352" x2="154" y2="468" stroke="#ff9800" stroke-width=".9">
+  <animate attributeName="stroke-opacity" values=".08;.55;.08" dur="1.9s" begin="1.32s" repeatCount="indefinite"/>
+</line>
+<line x1="524" y1="352" x2="466" y2="468" stroke="#ff9800" stroke-width=".9">
+  <animate attributeName="stroke-opacity" values=".08;.55;.08" dur="1.9s" begin="1.54s" repeatCount="indefinite"/>
+</line>
+<line x1="154" y1="468" x2="310" y2="560" stroke="#69f0ae" stroke-width=".9">
+  <animate attributeName="stroke-opacity" values=".08;.55;.08" dur="1.7s" begin="1.76s" repeatCount="indefinite"/>
+</line>
+<line x1="466" y1="468" x2="310" y2="560" stroke="#69f0ae" stroke-width=".9">
+  <animate attributeName="stroke-opacity" values=".08;.55;.08" dur="1.7s" begin="1.98s" repeatCount="indefinite"/>
+</line>
+<line x1="96" y1="352" x2="110" y2="468" stroke="#69f0ae" stroke-width=".8">
+  <animate attributeName="stroke-opacity" values=".06;.45;.06" dur="2.2s" begin=".5s" repeatCount="indefinite"/>
+</line>
+<line x1="524" y1="352" x2="510" y2="468" stroke="#69f0ae" stroke-width=".8">
+  <animate attributeName="stroke-opacity" values=".06;.45;.06" dur="2.2s" begin=".7s" repeatCount="indefinite"/>
+</line>
+
+<!-- ══ DATA DOTS ══ -->
+<circle r="3.5" fill="#00e5ff" opacity=".92">
+  <animateMotion dur="1.7s" repeatCount="indefinite"><mpath href="#w1"/></animateMotion>
+</circle>
+<circle r="3.5" fill="#00e5ff" opacity=".92">
+  <animateMotion dur="1.7s" begin=".5s" repeatCount="indefinite"><mpath href="#w2"/></animateMotion>
+</circle>
+<circle r="3" fill="#4dd0e1" opacity=".88">
+  <animateMotion dur="1.9s" begin=".8s" repeatCount="indefinite"><mpath href="#w3"/></animateMotion>
+</circle>
+<circle r="3" fill="#4dd0e1" opacity=".88">
+  <animateMotion dur="1.9s" begin="1.1s" repeatCount="indefinite"><mpath href="#w4"/></animateMotion>
+</circle>
+<circle r="3" fill="#b388ff" opacity=".88">
+  <animateMotion dur="2.1s" begin="1.3s" repeatCount="indefinite"><mpath href="#w5"/></animateMotion>
+</circle>
+<circle r="3" fill="#b388ff" opacity=".88">
+  <animateMotion dur="2.1s" begin="1.6s" repeatCount="indefinite"><mpath href="#w6"/></animateMotion>
+</circle>
+<circle r="3" fill="#ffab40" opacity=".88">
+  <animateMotion dur="1.9s" begin="1.9s" repeatCount="indefinite"><mpath href="#w7"/></animateMotion>
+</circle>
+<circle r="3" fill="#ffab40" opacity=".88">
+  <animateMotion dur="1.9s" begin="2.2s" repeatCount="indefinite"><mpath href="#w8"/></animateMotion>
+</circle>
+<circle r="3" fill="#69f0ae" opacity=".88">
+  <animateMotion dur="1.7s" begin="2.5s" repeatCount="indefinite"><mpath href="#w9"/></animateMotion>
+</circle>
+<circle r="3" fill="#69f0ae" opacity=".88">
+  <animateMotion dur="1.7s" begin="2.8s" repeatCount="indefinite"><mpath href="#w10"/></animateMotion>
+</circle>
+
+<!-- ══ FINAL SHIELD CRISP LAYER ══ -->
+<path d="M310 58 L478 118 L478 335 Q478 455 310 525 Q142 455 142 335 L142 118 Z"
+      fill="none" stroke="url(#shEdge)" stroke-width="2.4">
+  <animate attributeName="opacity" values=".72;1;.72" dur="2.5s" repeatCount="indefinite"/>
+</path>
+</svg>
+</div>

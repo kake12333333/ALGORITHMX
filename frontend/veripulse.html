@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeriPulse — AI-Powered Crisis Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue-deep: #020818;
+    --blue-mid: #051535;
+    --blue-glow: #1a6fff;
+    --blue-bright: #4d9fff;
+    --green-glow: #00ff9d;
+    --red-alert: #ff4444;
+    --yellow-warn: #ffcc44;
+    --white: #e8f0ff;
+    --white-dim: #8899bb;
+    --card-bg: rgba(5, 21, 53, 0.7);
+    --border: rgba(77, 159, 255, 0.15);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--blue-deep);
+    color: var(--white);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── CANVAS BACKGROUND ── */
+  #bg-canvas {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%; z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── EARTH ── */
+  #earth-canvas {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1; pointer-events: none;
+    opacity: 0.18;
+    transition: opacity .5s;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100; padding: 22px 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    backdrop-filter: blur(12px);
+    background: rgba(2, 8, 24, 0.6);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 3px;
+    color: var(--white);
+    display: flex; align-items: center; gap: 10px;
+    white-space: nowrap;
+  }
+  .nav-logo-mark {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border: 0;
+    background: transparent;
+    display: block;
+    pointer-events: none;
+  }
+  @keyframes pulse-dot {
+    0%,100%{ transform: scale(1); opacity:1; }
+    50%{ transform: scale(1.6); opacity:.6; }
+  }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--white-dim);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--blue-bright); }
+  .nav-cta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 24px;
+    background: transparent;
+    border: 1px solid var(--blue-glow);
+    color: var(--blue-bright);
+    transition: background .2s, box-shadow .2s;
+  }
+  .nav-cta:hover {
+    background: rgba(26, 111, 255, 0.15);
+    box-shadow: 0 0 20px rgba(26,111,255,0.3);
+  }
+
+  /* ── SECTIONS BASE ── */
+  section { position: relative; z-index: 10; }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh; display: flex;
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 120px 40px 80px;
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 5px; color: var(--blue-glow);
+    text-transform: uppercase; margin-bottom: 28px;
+    opacity: 0; animation: fadeUp .8s .3s ease forwards;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-eyebrow::before, .hero-eyebrow::after {
+    content: ''; display: block; width: 40px; height: 1px;
+    background: var(--blue-glow); opacity: .5;
+  }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 10vw, 140px);
+    line-height: .92; letter-spacing: 2px;
+    opacity: 0; animation: fadeUp .9s .5s ease forwards;
+    background: linear-gradient(135deg, #fff 0%, var(--blue-bright) 60%, var(--green-glow) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    max-width: 600px; margin: 28px auto 0;
+    font-size: 16px; line-height: 1.8; color: var(--white-dim);
+    opacity: 0; animation: fadeUp .9s .7s ease forwards;
+  }
+  .hero-actions {
+    margin-top: 52px; display: flex; gap: 20px;
+    opacity: 0; animation: fadeUp .9s .9s ease forwards;
+  }
+  .btn-primary {
+    padding: 16px 42px;
+    background: linear-gradient(135deg, var(--blue-glow), #0040cc);
+    border: none; color: #fff;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+    clip-path: polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+    transition: box-shadow .3s, transform .2s;
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 40px rgba(26,111,255,0.5);
+    transform: translateY(-2px);
+  }
+  .btn-outline {
+    padding: 16px 42px;
+    background: transparent;
+    border: 1px solid rgba(77, 159, 255, 0.4);
+    color: var(--white-dim);
+    font-family: 'Syne', sans-serif; font-weight: 600;
+    font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+    transition: border-color .3s, color .3s;
+  }
+  .btn-outline:hover { border-color: var(--blue-glow); color: var(--white); }
+
+  .hero-stats {
+    margin-top: 80px; display: flex; gap: 60px;
+    opacity: 0; animation: fadeUp .9s 1.1s ease forwards;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px; color: var(--blue-bright);
+    display: block; letter-spacing: 2px;
+  }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 3px;
+    color: var(--white-dim); text-transform: uppercase;
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(30px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── SECTION COMMON ── */
+  .section-header {
+    text-align: center; margin-bottom: 80px;
+  }
+  .section-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 5px; color: var(--blue-glow);
+    text-transform: uppercase; margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(42px, 6vw, 72px); letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--white), var(--blue-bright));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── FEATURES ── */
+  #features { padding: 120px 60px; }
+
+  .features-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    max-width: 1200px; margin: 0 auto;
+  }
+  .feature-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 48px 36px;
+    position: relative; overflow: hidden;
+    transition: border-color .3s, transform .3s, box-shadow .3s;
+    opacity: 0; transform: translateY(40px);
+  }
+  .feature-card.visible {
+    animation: cardReveal .7s ease forwards;
+  }
+  @keyframes cardReveal {
+    to { opacity:1; transform: translateY(0); }
+  }
+  .feature-card:hover {
+    border-color: rgba(77,159,255,0.4);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 30px rgba(26,111,255,0.1);
+  }
+  .feature-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(26,111,255,0.05) 0%, transparent 60%);
+    opacity: 0; transition: opacity .3s;
+  }
+  .feature-card:hover::before { opacity: 1; }
+
+  /* Icon canvases */
+  .icon-canvas {
+    width: 80px; height: 80px; margin-bottom: 28px;
+    position: relative;
+  }
+  .icon-canvas canvas { width: 80px; height: 80px; }
+
+  .feature-name {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 20px; margin-bottom: 14px;
+    color: var(--white);
+  }
+  .feature-desc {
+    font-size: 14px; line-height: 1.8;
+    color: var(--white-dim);
+  }
+  .feature-num {
+    position: absolute; top: 28px; right: 28px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px; color: rgba(77,159,255,0.06);
+    letter-spacing: 2px;
+  }
+
+  /* ── HOW IT WORKS ── */
+  #how { padding: 120px 60px; background: rgba(5,21,53,0.3); }
+
+  .steps { max-width: 900px; margin: 0 auto; position: relative; }
+  .steps::before {
+    content: ''; position: absolute; left: 39px; top: 0; bottom: 0;
+    width: 1px; background: linear-gradient(to bottom, transparent, var(--blue-glow), transparent);
+  }
+  .step {
+    display: flex; gap: 48px; margin-bottom: 64px;
+    opacity: 0; transform: translateX(-30px);
+  }
+  .step.visible { animation: slideRight .7s ease forwards; }
+  @keyframes slideRight {
+    to { opacity:1; transform: translateX(0); }
+  }
+  .step-num {
+    width: 80px; height: 80px; flex-shrink: 0;
+    border: 1px solid var(--blue-glow);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 32px;
+    color: var(--blue-glow); background: var(--blue-mid);
+    position: relative; z-index: 2;
+    box-shadow: 0 0 20px rgba(26,111,255,0.2);
+  }
+  .step-content { padding-top: 16px; }
+  .step-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 4px; color: var(--green-glow);
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .step-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 24px; margin-bottom: 12px;
+  }
+  .step-desc { font-size: 15px; line-height: 1.8; color: var(--white-dim); }
+
+  /* ── AI SECTION ── */
+  #ai-section { padding: 120px 60px; }
+
+  .ai-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+  }
+  .ai-visual {
+    position: relative; height: 400px;
+  }
+  #ai-canvas { width: 100%; height: 100%; }
+
+  .ai-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    padding: 6px 14px;
+    border: 1px solid;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .badge.blue { border-color: var(--blue-glow); color: var(--blue-bright); }
+  .badge.green { border-color: var(--green-glow); color: var(--green-glow); }
+  .badge.red { border-color: var(--red-alert); color: var(--red-alert); }
+  .badge::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+  .ai-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px; line-height: 1; letter-spacing: 2px; margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--white), var(--blue-bright));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .ai-desc { font-size: 15px; line-height: 1.9; color: var(--white-dim); margin-bottom: 36px; }
+  .ai-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .metric {
+    background: rgba(26,111,255,0.08);
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+  .metric-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px; color: var(--blue-bright); letter-spacing: 1px;
+  }
+  .metric-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 2px; color: var(--white-dim);
+    text-transform: uppercase; margin-top: 4px;
+  }
+
+  /* ── ROLES ── */
+  #roles { padding: 120px 60px; background: rgba(5,21,53,0.3); }
+
+  .roles-grid {
+    max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+  }
+  .role-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 48px 32px; text-align: center;
+    position: relative; overflow: hidden;
+    transition: all .3s;
+    opacity: 0; transform: translateY(40px);
+  }
+  .role-card.visible { animation: cardReveal .7s ease forwards; }
+  .role-card:hover {
+    border-color: rgba(77,159,255,0.5);
+    box-shadow: 0 0 60px rgba(26,111,255,0.15);
+  }
+  .role-icon {
+    width: 72px; height: 72px; margin: 0 auto 28px;
+  }
+  .role-icon canvas { width: 72px; height: 72px; }
+  .role-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px; letter-spacing: 2px; margin-bottom: 14px;
+  }
+  .role-desc { font-size: 14px; line-height: 1.8; color: var(--white-dim); margin-bottom: 28px; }
+  .role-perks { list-style: none; text-align: left; }
+  .role-perks li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 1px; color: var(--white-dim);
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .role-perks li::before { content:'→'; color: var(--blue-glow); }
+
+  /* ── REWARD SECTION ── */
+  #rewards { padding: 120px 60px; }
+
+  .rewards-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+  }
+  .reward-tiers { display: flex; flex-direction: column; gap: 16px; margin-top: 36px; }
+  .tier {
+    display: flex; align-items: center; gap: 20px;
+    background: var(--card-bg); border: 1px solid var(--border);
+    padding: 20px 24px;
+    transition: border-color .3s;
+  }
+  .tier:hover { border-color: rgba(77,159,255,0.4); }
+  .tier-icon {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .tier-gold { background: rgba(255,204,68,0.15); border: 1px solid rgba(255,204,68,0.4); }
+  .tier-silver { background: rgba(200,200,220,0.1); border: 1px solid rgba(200,200,220,0.3); }
+  .tier-bronze { background: rgba(200,120,80,0.1); border: 1px solid rgba(200,120,80,0.3); }
+  .tier-name {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+  }
+  .tier-desc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 2px; color: var(--white-dim);
+    text-transform: uppercase; margin-top: 4px;
+  }
+  .tier-pts {
+    margin-left: auto;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; color: var(--blue-bright);
+  }
+
+  .rewards-visual { position: relative; height: 380px; }
+  #reward-canvas { width: 100%; height: 100%; }
+
+  /* ── CTA SECTION ── */
+  #cta { padding: 140px 60px; text-align: center; position: relative; overflow: hidden; }
+  #cta::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(26,111,255,0.12) 0%, transparent 70%);
+  }
+  .cta-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 7vw, 96px); letter-spacing: 3px;
+    line-height: .95; margin-bottom: 28px;
+    background: linear-gradient(135deg, var(--white), var(--blue-bright), var(--green-glow));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cta-sub {
+    font-size: 16px; color: var(--white-dim); max-width: 560px;
+    margin: 0 auto 52px; line-height: 1.8;
+  }
+  .cta-actions { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 48px 60px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; z-index: 10;
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px; letter-spacing: 3px;
+  }
+  .footer-copy {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 2px; color: var(--white-dim);
+  }
+  .footer-links { display: flex; gap: 28px; }
+  .footer-links a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 2px; color: var(--white-dim);
+    text-decoration: none; text-transform: uppercase;
+    transition: color .2s;
+  }
+  .footer-links a:hover { color: var(--blue-glow); }
+
+  /* ── ALERT TICKER ── */
+  .alert-ticker {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    z-index: 200; background: rgba(2,8,24,0.95);
+    border-top: 1px solid rgba(255,68,68,0.3);
+    padding: 10px 0; overflow: hidden;
+  }
+  .ticker-inner {
+    display: flex; gap: 80px;
+    animation: ticker 30s linear infinite;
+    white-space: nowrap;
+  }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .ticker-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 2px;
+    color: var(--white-dim); text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+  }
+  .ticker-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+  .ticker-dot.red { background: var(--red-alert); box-shadow: 0 0 8px var(--red-alert); }
+  .ticker-dot.yellow { background: var(--yellow-warn); box-shadow: 0 0 8px var(--yellow-warn); }
+  .ticker-dot.green { background: var(--green-glow); box-shadow: 0 0 8px var(--green-glow); }
+
+  /* ── AUTH MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(2,8,24,0.92); backdrop-filter: blur(12px);
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    width: 480px; background: var(--blue-mid);
+    border: 1px solid rgba(77,159,255,0.3);
+    padding: 52px 48px; position: relative;
+    box-shadow: 0 0 80px rgba(26,111,255,0.2);
+    animation: modalIn .4s ease;
+    overflow: hidden;
+  }
+  .modal::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(140deg, rgba(26,111,255,0.08), transparent 45%, rgba(0,255,157,0.04));
+    pointer-events: none;
+  }
+  @keyframes modalIn {
+    from { opacity:0; transform: scale(.96) translateY(20px); }
+    to { opacity:1; transform: scale(1) translateY(0); }
+  }
+  .modal-close {
+    position: absolute; top: 20px; right: 20px;
+    background: none; border: none; color: var(--white-dim);
+    font-size: 20px;
+    transition: color .2s;
+  }
+  .modal-close:hover { color: var(--white); }
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px; letter-spacing: 2px; margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .modal-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 2px; color: var(--white-dim);
+    margin-bottom: 36px;
+    position: relative;
+    z-index: 1;
+  }
+  .tab-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 28px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    padding: 4px;
+    position: relative;
+    z-index: 1;
+  }
+  .tab-btn {
+    padding: 11px;
+    background: transparent; border: none; color: var(--white-dim);
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    transition: all .25s;
+  }
+  .tab-btn.active {
+    color: var(--white);
+    background: linear-gradient(135deg, rgba(26,111,255,0.22), rgba(26,111,255,0.08));
+    box-shadow: inset 0 0 0 1px rgba(77,159,255,0.35), 0 0 16px rgba(26,111,255,0.22);
+  }
+  .auth-pane {
+    position: relative;
+    z-index: 1;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .auth-pane.fade-out {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .form-group { margin-bottom: 18px; }
+  .form-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 3px; color: var(--white-dim);
+    text-transform: uppercase; display: block; margin-bottom: 8px;
+  }
+  .input-wrap {
+    position: relative;
+  }
+  .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(77,159,255,0.7);
+    pointer-events: none;
+    width: 16px;
+    height: 16px;
+  }
+  .form-input {
+    width: 100%; padding: 14px 16px 14px 42px;
+    background: rgba(255,255,255,0.045);
+    border: 1px solid var(--border); color: var(--white);
+    font-family: 'Syne', sans-serif; font-size: 14px;
+    outline: none; transition: border-color .2s, box-shadow .2s, background .2s;
+  }
+  .form-input:focus {
+    border-color: var(--blue-glow);
+    background: rgba(255,255,255,0.07);
+    box-shadow: 0 0 0 1px rgba(26,111,255,0.25), 0 0 22px rgba(26,111,255,0.16);
+  }
+  .form-select {
+    width: 100%; padding: 14px 16px 14px 42px;
+    background: rgba(255,255,255,0.045);
+    border: 1px solid var(--border); color: var(--white);
+    font-family: 'Syne', sans-serif; font-size: 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+  }
+  .form-select:focus {
+    border-color: var(--blue-glow);
+    background: rgba(255,255,255,0.07);
+    box-shadow: 0 0 0 1px rgba(26,111,255,0.25), 0 0 22px rgba(26,111,255,0.16);
+  }
+  .form-select option { background: var(--blue-mid); }
+  .btn-submit {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, var(--blue-glow), #0040cc);
+    border: none; color: #fff;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+    margin-top: 8px;
+    transition: box-shadow .3s, transform .2s;
+  }
+  .btn-submit:hover {
+    box-shadow: 0 0 30px rgba(26,111,255,0.4);
+    transform: translateY(-1px);
+  }
+
+  /* ── NAV EMERGENCY PANEL ── */
+  .nav-right {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .emergency-panel {
+    position: fixed;
+    top: 86px;
+    right: 60px;
+    width: 340px;
+    z-index: 120;
+    background: rgba(5, 21, 53, 0.92);
+    border: 1px solid var(--border);
+    box-shadow: 0 0 40px rgba(26,111,255,0.2);
+    padding: 22px;
+    display: none;
+  }
+  .emergency-panel.active { display: block; animation: fadeUp .25s ease; }
+  .emergency-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    color: var(--white);
+  }
+  .emergency-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--white-dim);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  .emergency-main {
+    background: rgba(255, 68, 68, 0.08);
+    border: 1px solid rgba(255, 68, 68, 0.35);
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .emergency-main-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--red-alert);
+    text-transform: uppercase;
+  }
+  .emergency-main-phone {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    margin-top: 4px;
+  }
+  .emergency-list {
+    list-style: none;
+    border: 1px solid rgba(255, 204, 68, 0.3);
+    background: rgba(255, 204, 68, 0.05);
+  }
+  .emergency-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255, 204, 68, 0.18);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--white-dim);
+  }
+  .emergency-list li:last-child { border-bottom: 0; }
+  .emergency-list strong {
+    color: var(--yellow-warn);
+    font-weight: 600;
+  }
+
+  @media (max-width: 980px) {
+    nav { padding: 18px 20px; }
+    .nav-links { display: none; }
+    .nav-logo-mark { width: 38px; height: 38px; flex-basis: 38px; }
+    .emergency-panel {
+      right: 20px;
+      top: 76px;
+      width: min(340px, calc(100vw - 40px));
+    }
+  }
+
+  @media (max-width: 560px) {
+    .modal { width: calc(100vw - 24px); padding: 42px 20px 26px; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- Background canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Earth canvas -->
+<canvas id="earth-canvas" width="800" height="800"></canvas>
+
+<!-- Alert Ticker -->
+<div class="alert-ticker">
+  <div class="ticker-inner" id="ticker">
+    <!-- items inserted by JS -->
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <iframe class="nav-logo-mark" src="responza_hero_logo_final.html" title="VeriPulse Logo" loading="lazy"></iframe>
+    <span>VeriPulse</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#ai-section">AI Engine</a></li>
+    <li><a href="#roles">Roles</a></li>
+    <li><a href="#rewards">Rewards</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="nav-cta" onclick="toggleEmergencyPanel()">Emergency</button>
+  </div>
+</nav>
+
+<div class="emergency-panel" id="emergency-panel">
+  <div class="emergency-title">Emergency Contacts</div>
+  <div class="emergency-subtitle">// Immediate Help Numbers</div>
+  <div class="emergency-main">
+    <div class="emergency-main-label">Main Contact</div>
+    <div class="emergency-main-phone">+91 9876543210</div>
+  </div>
+  <ul class="emergency-list">
+    <li><span>Ambulance</span><strong>108</strong></li>
+    <li><span>Police</span><strong>100</strong></li>
+    <li><span>Fire</span><strong>101</strong></li>
+    <li><span>Women Helpline</span><strong>1091</strong></li>
+  </ul>
+</div>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section id="hero">
+  <div class="hero-eyebrow">AI-POWERED CRISIS INTELLIGENCE SYSTEM</div>
+  <h1 class="hero-title" style="white-space: nowrap;">VeriPulse</h1>
+  <p class="hero-sub">
+   A real-time crisis intelligence platform that verifies
+    emergency reports, filters misinformation, and coordinates resources instantly
+     during critical situations..
+  </p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="window.location.href='auth.html'">LAUNCH SYSTEM</button>
+    <button class="btn-outline" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">SEE HOW IT WORKS</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <span class="stat-num" data-target="98">0</span>
+      <span class="stat-label">% Response Rate</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" data-target="3.2">0</span>
+      <span class="stat-label">Min Avg Response</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" data-target="12400">0</span>
+      <span class="stat-label">Incidents Resolved</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FEATURES ═══════════ -->
+<section id="features">
+  <div class="section-header">
+    <div class="section-tag">Core Capabilities</div>
+    <h2 class="section-title">BUILT FOR THE CRITICAL MOMENT</h2>
+  </div>
+  <div class="features-grid">
+
+    <div class="feature-card">
+      <div class="feature-num">01</div>
+      <div class="icon-canvas"><canvas id="icon-map" width="80" height="80"></canvas></div>
+      <div class="feature-name">Resource Allocation</div>
+      <p class="feature-desc">The platform helps send emergency resources where they are needed most by checking incident priority, nearby availability, and urgency. This makes response faster and avoids delays during critical situations.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-num">02</div>
+      <div class="icon-canvas"><canvas id="icon-alert" width="80" height="80"></canvas></div>
+      <div class="feature-name">Real-Time Alerts</div>
+      <p class="feature-desc">Verified alerts are shared instantly with nearby volunteers and responders based on location, so the right people get informed at the right time.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-num">03</div>
+      <div class="icon-canvas"><canvas id="icon-vol" width="80" height="80"></canvas></div>
+      <div class="feature-name">Volunteer Network</div>
+      <p class="feature-desc">Volunteers are matched automatically based on their skills, location, and availability, making it easier to assign help quickly during emergencies.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-num">04</div>
+      <div class="icon-canvas"><canvas id="icon-chat" width="80" height="80"></canvas></div>
+      <div class="feature-name">Chat</div>
+      <p class="feature-desc">The platform includes a simple chat feature that allows users to communicate, share updates, and stay connected during emergency situations.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-num">05</div>
+      <div class="icon-canvas"><canvas id="icon-map2" width="80" height="80"></canvas></div>
+      <div class="feature-name">Live Incident Map</div>
+      <p class="feature-desc">A live map shows active incidents using priority-based markers, helping users and responders quickly understand where immediate attention is needed.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-num">06</div>
+      <div class="icon-canvas"><canvas id="icon-ai2" width="80" height="80"></canvas></div>
+      <div class="feature-name">AI Trust Scoring</div>
+      <p class="feature-desc">Every report gets a trust score to help identify reliable alerts, reduce misinformation, and support better decisions during emergencies.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ HOW IT WORKS ═══════════ -->
+<section id="how">
+  <div class="section-header">
+    <div class="section-tag">// Process Flow</div>
+    <h2 class="section-title">FROM REPORT TO RESPONSE</h2>
+  </div>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <div class="step-label">REPORTING</div>
+        <div class="step-title">Incident Reported</div>
+        <p class="step-desc">
+          Users report an incident by adding basic details such as location, type of emergency, and description. The system records the information instantly so that action can begin without delay.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <div class="step-label">VERIFICATION</div>
+        <div class="step-title">AI Evaluates & Scores</div>
+        <p class="step-desc">
+          The system analyzes the report, checks its reliability, and assigns a trust score to help identify priority and reduce false alerts during emergencies.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <div class="step-label">RESPONSE</div>
+        <div class="step-title">Volunteers Assigned</div>
+        <p class="step-desc">
+          Nearby available volunteers are identified based on location and assigned quickly so that help can reach the affected area faster.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-content">
+        <div class="step-label">COMMUNICATION</div>
+        <div class="step-title">Real-Time Communication</div>
+        <p class="step-desc">
+          Users and volunteers can communicate through chat, share updates, and stay informed as the situation develops.
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">05</div>
+      <div class="step-content">
+        <div class="step-label">COMPLETION</div>
+        <div class="step-title">Resolution & Rewards</div>
+        <p class="step-desc">
+          Once the incident is handled, it is marked as resolved and volunteers receive points based on their participation and response.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ AI ENGINE ═══════════ -->
+<section id="ai-section">
+  <div class="ai-inner">
+    <div class="ai-visual">
+      <canvas id="ai-canvas" width="500" height="400"></canvas>
+    </div>
+    <div class="ai-content">
+      <div class="ai-badges">
+        <span class="badge blue">Trust Scoring</span>
+        <span class="badge green">Priority Analysis</span>
+        <span class="badge red">Fake Alert Detection</span>
+      </div>
+      <h2 class="ai-title">INTELLIGENCE AT THE CORE</h2>
+      <p class="ai-desc">
+        Every reported incident is analyzed to estimate reliability, assign a trust score,
+         and identify urgency. The system helps filter unreliable reports and supports 
+         faster decisions during emergency situations.
+      </p>
+      <div class="ai-metrics">
+        <div class="metric">
+          <div class="metric-val">97%</div>
+          <div class="metric-name">Accuracy Rate</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val">&lt;2s</div>
+          <div class="metric-name">Response Analysis</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val">0–100</div>
+          <div class="metric-name">Trust Score Scale</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val">3 Levels</div>
+          <div class="metric-name">Priority Classification</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ROLES ═══════════ -->
+<section id="roles">
+  <div class="section-header">
+    <div class="section-tag"> Who Uses VeriPulse</div>
+    <h2 class="section-title">BUILT FOR EVERY ROLE</h2>
+  </div>
+  <div class="roles-grid">
+
+    <div class="role-card">
+      <div class="role-icon"><canvas id="role-admin" width="72" height="72"></canvas></div>
+      <div class="role-name">ADMIN</div>
+      <p class="role-desc">Full control over the entire crisis ecosystem. Approve, override, and manage with complete visibility.</p>
+      <ul class="role-perks">
+        <li>View all incidents & filters</li>
+        <li>Override AI decisions</li>
+        <li>Manage volunteer roster</li>
+        <li>Review false reports</li>
+        <li>System analytics</li>
+      </ul>
+    </div>
+
+    <div class="role-card">
+      <div class="role-icon"><canvas id="role-vol" width="72" height="72"></canvas></div>
+      <div class="role-name">VOLUNTEER</div>
+      <p class="role-desc">Receives nearby incident assignments, responds quickly, and earns points for active participation during emergency support.</p>
+      <ul class="role-perks">
+        <li>Auto-assigned missions</li>
+        <li>Incident chat access</li>
+        <li>Points & leaderboard</li>
+        <li>Skill-based matching</li>
+        <li>Reward redemption</li>
+      </ul>
+    </div>
+
+    <div class="role-card">
+      <div class="role-icon"><canvas id="role-cit" width="72" height="72"></canvas></div>
+      <div class="role-name">CITIZEN</div>
+      <p class="role-desc">Reports incidents, checks response progress, and stays informed through one simple emergency support platform.</p>
+      <ul class="role-perks">
+        <li>Report incidents</li>
+        <li>View trust score</li>
+        <li>Track response status</li>
+        <li>Access incident map</li>
+        <li>Chat with volunteers</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ REWARDS ═══════════ -->
+<section id="rewards">
+  <div class="rewards-inner">
+    <div class="rewards-content">
+      <div class="section-tag">Volunteer Incentives</div>
+      <h2 class="section-title">EARN AS YOU SERVE</h2>
+      <p style="color:var(--white-dim);font-size:15px;line-height:1.8;margin-bottom:12px;">
+        VeriPulse's reward engine converts real-world impact into points. Fast responses, 
+        resolved incidents, and skill matches all multiply your score.
+      </p>
+      <div class="reward-tiers">
+        <div class="tier">
+          <div class="tier-icon tier-gold">🥇</div>
+          <div class="tier-info">
+            <div class="tier-name">Gold Responder</div>
+            <div class="tier-desc">5+ high-priority missions resolved</div>
+          </div>
+          <div class="tier-pts">1000+</div>
+        </div>
+        <div class="tier">
+          <div class="tier-icon tier-silver">🥈</div>
+          <div class="tier-info">
+            <div class="tier-name">Silver Responder</div>
+            <div class="tier-desc">3+ missions, avg response &lt;5min</div>
+          </div>
+          <div class="tier-pts">500+</div>
+        </div>
+        <div class="tier">
+          <div class="tier-icon tier-bronze">🥉</div>
+          <div class="tier-info">
+            <div class="tier-name">Bronze Responder</div>
+            <div class="tier-desc">First mission completed</div>
+          </div>
+          <div class="tier-pts">100+</div>
+        </div>
+      </div>
+    </div>
+    <div class="rewards-visual">
+      <canvas id="reward-canvas" width="460" height="380"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CTA ═══════════ -->
+<section id="cta">
+  <h2 class="cta-title">READY TO RESPOND<br>SMARTER?</h2>
+  <p class="cta-sub">Join VeriPulse today. Register as a citizen, volunteer, or request admin access to protect your community.</p>
+  <div class="cta-actions">
+    <button class="btn-primary" onclick="window.location.href='auth.html'">JOIN NOW</button>
+    <button class="btn-outline">REQUEST DEMO</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">VeriPulse</div>
+  <div class="footer-copy">© 2025 VeriPulse Systems. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">API Docs</a>
+    <a href="#">Status</a>
+  </div>
+</footer>
+
+<script>
+// ── PARTICLES BG ──
+const bgC = document.getElementById('bg-canvas');
+const bgCtx = bgC.getContext('2d');
+bgC.width = window.innerWidth; bgC.height = window.innerHeight;
+window.addEventListener('resize',()=>{ bgC.width=window.innerWidth; bgC.height=window.innerHeight; });
+
+const particles = Array.from({length:120},()=>({
+  x: Math.random()*window.innerWidth,
+  y: Math.random()*window.innerHeight,
+  r: Math.random()*.8+.2,
+  vx: (Math.random()-.5)*.3,
+  vy: (Math.random()-.5)*.3,
+  a: Math.random()
+}));
+
+function drawBg(){
+  bgCtx.fillStyle='rgba(2,8,24,0.13)';
+  bgCtx.fillRect(0,0,bgC.width,bgC.height);
+  particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0)p.x=bgC.width; if(p.x>bgC.width)p.x=0;
+    if(p.y<0)p.y=bgC.height; if(p.y>bgC.height)p.y=0;
+    p.a=Math.abs(Math.sin(Date.now()/3000+p.x));
+    bgCtx.beginPath();
+    bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    bgCtx.fillStyle=`rgba(77,159,255,${p.a*0.68})`;
+    bgCtx.fill();
+  });
+  // Glow orbs
+  const t=Date.now()/8000;
+  [[.2,.3,'#1a6fff',190],[.7,.6,'#00ff9d',130],[.5,.8,'#ff4444',90]].forEach(([cx,cy,col,r])=>{
+    const gx=bgC.width*(cx+Math.sin(t)*0.04);
+    const gy=bgC.height*(cy+Math.cos(t)*0.04);
+    const g=bgCtx.createRadialGradient(gx,gy,0,gx,gy,r);
+    g.addColorStop(0,col+'2a'); g.addColorStop(1,'transparent');
+    bgCtx.fillStyle=g; bgCtx.fillRect(0,0,bgC.width,bgC.height);
+  });
+  const depth=bgCtx.createRadialGradient(bgC.width*0.5,bgC.height*0.45,20,bgC.width*0.5,bgC.height*0.45,bgC.height*0.8);
+  depth.addColorStop(0,'rgba(26,111,255,0.05)');
+  depth.addColorStop(1,'transparent');
+  bgCtx.fillStyle=depth;
+  bgCtx.fillRect(0,0,bgC.width,bgC.height);
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+// ── EARTH CANVAS ──
+const ec = document.getElementById('earth-canvas');
+const ectx = ec.getContext('2d');
+const CX=400, CY=400, R=300;
+let earthRot=0;
+let scrollSpeed=0;
+
+window.addEventListener('scroll',()=>{
+  const p=window.scrollY/(document.body.scrollHeight-window.innerHeight);
+  scrollSpeed=p;
+  ec.style.transform=`translate(-50%,-50%) scale(${1+p*.12}) translateY(${-p*60}px)`;
+  ec.style.opacity=(0.18+p*0.06).toString();
+});
+
+function drawEarth(){
+  ectx.clearRect(0,0,800,800);
+  earthRot+=0.002+scrollSpeed*0.015;
+
+  // Base sphere gradient
+  const sg=ectx.createRadialGradient(350,320,20,CX,CY,R);
+  sg.addColorStop(0,'#0a2a6e');
+  sg.addColorStop(.5,'#051535');
+  sg.addColorStop(1,'#020818');
+  ectx.beginPath(); ectx.arc(CX,CY,R,0,Math.PI*2);
+  ectx.fillStyle=sg; ectx.fill();
+
+  // Clip to sphere
+  ectx.save(); ectx.beginPath(); ectx.arc(CX,CY,R,0,Math.PI*2); ectx.clip();
+
+  // Land masses (simplified continents as bezier shapes)
+  ectx.globalAlpha=0.5;
+  const landColor='rgba(0,255,157,0.25)';
+  const t=earthRot;
+  // Draw rotating lines (lat/lon grid)
+  ectx.strokeStyle='rgba(26,111,255,0.08)'; ectx.lineWidth=0.5;
+  for(let i=0;i<18;i++){
+    const angle=i/18*Math.PI*2+t;
+    ectx.beginPath();
+    ectx.ellipse(CX,CY,R*Math.abs(Math.cos(angle)),R,angle,0,Math.PI*2);
+    ectx.stroke();
+  }
+  for(let i=0;i<9;i++){
+    const y=CY-R+i*(R*2/9);
+    const rr=Math.sqrt(R*R-(y-CY)*(y-CY));
+    ectx.beginPath();
+    ectx.ellipse(CX,y,rr,rr*.15,0,0,Math.PI*2);
+    ectx.stroke();
+  }
+
+  // Continents
+  ectx.globalAlpha=0.35;
+  function continent(pts){
+    ectx.beginPath();
+    const ox=Math.sin(t)*30;
+    ectx.moveTo(pts[0][0]+ox,pts[0][1]);
+    for(let i=1;i<pts.length;i++) ectx.lineTo(pts[i][0]+ox,pts[i][1]);
+    ectx.closePath();
+    ectx.fillStyle=landColor;
+    ectx.fill();
+  }
+  // Americas
+  continent([[280,180],[320,160],[350,200],[340,280],[310,350],[280,380],[260,360],[255,300],[270,240]]);
+  // Europe/Africa
+  continent([[420,160],[460,155],[470,200],[480,280],[470,380],[440,420],[410,390],[400,300],[410,220]]);
+  // Asia
+  continent([[480,140],[580,130],[620,160],[610,240],[570,280],[510,270],[480,220],[470,170]]);
+  // Australia
+  continent([[540,350],[590,340],[600,380],[570,400],[540,395],[525,370]]);
+
+  ectx.restore();
+  ectx.globalAlpha=1;
+
+  // Glow ring
+  const ring=ectx.createRadialGradient(CX,CY,R-10,CX,CY,R+40);
+  ring.addColorStop(0,'rgba(26,111,255,0.25)');
+  ring.addColorStop(.5,'rgba(0,255,157,0.1)');
+  ring.addColorStop(1,'transparent');
+  ectx.beginPath(); ectx.arc(CX,CY,R+40,0,Math.PI*2);
+  ectx.fillStyle=ring; ectx.fill();
+
+  // Pulse dots (incidents)
+  const incidents=[
+    {x:290,y:240,col:'#ff4444'},{x:440,y:280,col:'#ffcc44'},
+    {x:490,y:190,col:'#ff4444'},{x:540,y:360,col:'#00ff9d'},
+  ];
+  incidents.forEach(inc=>{
+    const pulse=(Math.sin(Date.now()/600+inc.x)*.5+.5);
+    const ox=Math.sin(t)*30;
+    const ix=inc.x+ox, iy=inc.y;
+    const dx=ix-CX, dy=iy-CY;
+    if(dx*dx+dy*dy<R*R){
+      ectx.beginPath();
+      ectx.arc(ix,iy,3+pulse*5,0,Math.PI*2);
+      ectx.fillStyle=inc.col+'44';
+      ectx.fill();
+      ectx.beginPath();
+      ectx.arc(ix,iy,3,0,Math.PI*2);
+      ectx.fillStyle=inc.col;
+      ectx.fill();
+    }
+  });
+
+  requestAnimationFrame(drawEarth);
+}
+drawEarth();
+
+// ── ANIMATED ICONS ──
+function drawMapIcon(canvas){
+  const ctx=canvas.getContext('2d');
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,80,80);
+    // Grid lines
+    ctx.strokeStyle='rgba(26,111,255,0.3)'; ctx.lineWidth=.5;
+    for(let i=0;i<6;i++){
+      ctx.beginPath(); ctx.moveTo(i*16,0); ctx.lineTo(i*16,80); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,i*16); ctx.lineTo(80,i*16); ctx.stroke();
+    }
+    // Route
+    const p=Math.sin(t/30)*.5+.5;
+    ctx.beginPath();
+    ctx.moveTo(10,60); ctx.bezierCurveTo(30,40,50,50,70,20);
+    ctx.strokeStyle='rgba(26,111,255,0.8)'; ctx.lineWidth=2;
+    ctx.setLineDash([5,4]); ctx.lineDashOffset=-t;
+    ctx.stroke(); ctx.setLineDash([]);
+    // Moving dot
+    const bt=p;
+    const bx=10*(1-bt)**3+3*30*(1-bt)**2*bt+3*50*(1-bt)*bt**2+70*bt**3;
+    const by=60*(1-bt)**3+3*40*(1-bt)**2*bt+3*50*(1-bt)*bt**2+20*bt**3;
+    ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2);
+    ctx.fillStyle='var(--blue-glow)';
+    const g=ctx.createRadialGradient(bx,by,0,bx,by,8);
+    g.addColorStop(0,'#1a6fff'); g.addColorStop(1,'transparent');
+    ctx.fillStyle=g; ctx.fill();
+    ctx.beginPath(); ctx.arc(bx,by,2.5,0,Math.PI*2);
+    ctx.fillStyle='#4d9fff'; ctx.fill();
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function drawAlertIcon(canvas){
+  const ctx=canvas.getContext('2d');
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,80,80);
+    const cx=40,cy=40;
+    // Pulse rings
+    for(let i=0;i<3;i++){
+      const r=15+(i*12)+((t+i*20)%40)*.5;
+      const a=Math.max(0,1-(r-15)/50);
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(255,68,68,${a*.6})`; ctx.lineWidth=1.5;
+      ctx.stroke();
+    }
+    // Center
+    ctx.beginPath(); ctx.arc(cx,cy,6,0,Math.PI*2);
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,6);
+    g.addColorStop(0,'#ff6666'); g.addColorStop(1,'#ff0000');
+    ctx.fillStyle=g; ctx.fill();
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function drawVolIcon(canvas){
+  const ctx=canvas.getContext('2d');
+  let t=0;
+  const nodes=[{x:40,y:20},{x:20,y:55},{x:60,y:55},{x:10,y:35},{x:70,y:35}];
+  function draw(){
+    ctx.clearRect(0,0,80,80);
+    // Connections
+    [[0,1],[0,2],[0,3],[0,4],[1,3],[2,4]].forEach(([a,b])=>{
+      const p=Math.sin(t/40+a)*.5+.5;
+      ctx.beginPath();
+      ctx.moveTo(nodes[a].x,nodes[a].y);
+      ctx.lineTo(nodes[b].x,nodes[b].y);
+      ctx.strokeStyle=`rgba(0,255,157,${0.2+p*.4})`;
+      ctx.lineWidth=1; ctx.stroke();
+    });
+    // Nodes
+    nodes.forEach((n,i)=>{
+      const pulse=(Math.sin(t/30+i)*.5+.5);
+      ctx.beginPath(); ctx.arc(n.x,n.y,4+pulse*2,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,255,157,${0.2+pulse*.3})`; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x,n.y,3.5,0,Math.PI*2);
+      ctx.fillStyle='#00ff9d'; ctx.fill();
+    });
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function drawChatIcon(canvas){
+  const ctx=canvas.getContext('2d');
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,80,80);
+    // Chat bubble
+    ctx.strokeStyle='rgba(26,111,255,0.6)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.roundRect(8,12,50,35,8); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(22,40,50,30,8); ctx.stroke();
+    // Dots (typing)
+    for(let i=0;i<3;i++){
+      const a=Math.sin(t/15+i*1.2)*.5+.5;
+      ctx.beginPath(); ctx.arc(22+i*10,29,2.5,0,Math.PI*2);
+      ctx.fillStyle=`rgba(26,111,255,${0.4+a*.6})`; ctx.fill();
+    }
+    for(let i=0;i<3;i++){
+      const a=Math.sin(t/15+i*1.2+1)*.5+.5;
+      ctx.beginPath(); ctx.arc(36+i*10,55,2.5,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,255,157,${0.4+a*.6})`; ctx.fill();
+    }
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function drawMapIcon2(canvas){
+  const ctx=canvas.getContext('2d');
+  let t=0;
+  const markers=[
+    {x:25,y:30,col:'#ff4444',r:5},{x:55,y:25,col:'#ffcc44',r:4},{x:45,y:55,col:'#00ff9d',r:4}
+  ];
+  function draw(){
+    ctx.clearRect(0,0,80,80);
+    // Map bg
+    ctx.fillStyle='rgba(26,111,255,0.05)';
+    ctx.beginPath(); ctx.roundRect(8,8,64,64,4); ctx.fill();
+    // Grid
+    ctx.strokeStyle='rgba(26,111,255,0.12)'; ctx.lineWidth=.5;
+    for(let i=0;i<5;i++){
+      const v=8+i*16;
+      ctx.beginPath(); ctx.moveTo(v,8); ctx.lineTo(v,72); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(8,v); ctx.lineTo(72,v); ctx.stroke();
+    }
+    markers.forEach(m=>{
+      const pulse=(Math.sin(t/25+m.x)*.5+.5);
+      ctx.beginPath(); ctx.arc(m.x,m.y,m.r+pulse*4,0,Math.PI*2);
+      ctx.fillStyle=m.col+'33'; ctx.fill();
+      ctx.beginPath(); ctx.arc(m.x,m.y,m.r,0,Math.PI*2);
+      ctx.fillStyle=m.col; ctx.fill();
+    });
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function drawAiIcon(canvas){
+  const ctx=canvas.getContext('2d');
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,80,80);
+    // Neural net
+    const layers=[[{x:15,y:40}],[{x:35,y:22},{x:35,y:40},{x:35,y:58}],[{x:55,y:30},{x:55,y:50}],[{x:70,y:40}]];
+    layers.forEach((layer,li)=>{
+      layer.forEach((n,ni)=>{
+        if(li<layers.length-1){
+          layers[li+1].forEach(n2=>{
+            const a=Math.sin(t/30+li+ni)*.5+.5;
+            ctx.beginPath(); ctx.moveTo(n.x,n.y); ctx.lineTo(n2.x,n2.y);
+            ctx.strokeStyle=`rgba(26,111,255,${0.2+a*.4})`; ctx.lineWidth=1;
+            ctx.stroke();
+          });
+        }
+        const pulse=Math.sin(t/25+li*1.3+ni)*.5+.5;
+        ctx.beginPath(); ctx.arc(n.x,n.y,4+pulse*2,0,Math.PI*2);
+        ctx.fillStyle=`rgba(26,111,255,${0.2+pulse*.3})`; ctx.fill();
+        ctx.beginPath(); ctx.arc(n.x,n.y,3.5,0,Math.PI*2);
+        ctx.fillStyle='#4d9fff'; ctx.fill();
+      });
+    });
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function drawRoleIcon(canvas,type){
+  const ctx=canvas.getContext('2d');
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,72,72);
+    const cx=36,cy=36;
+    if(type==='admin'){
+      // Shield
+      ctx.beginPath();
+      ctx.moveTo(cx,8); ctx.lineTo(cx+20,18); ctx.lineTo(cx+20,38);
+      ctx.quadraticCurveTo(cx+20,58,cx,64);
+      ctx.quadraticCurveTo(cx-20,58,cx-20,38);
+      ctx.lineTo(cx-20,18); ctx.closePath();
+      ctx.strokeStyle=`rgba(255,68,68,${0.5+Math.sin(t/30)*.2})`; ctx.lineWidth=1.5;
+      ctx.stroke();
+      // Star center
+      for(let i=0;i<5;i++){
+        const a=i*Math.PI*2/5-Math.PI/2;
+        const r=i%2===0?10:5;
+        if(i===0) ctx.moveTo(cx+r*Math.cos(a),cy-4+r*Math.sin(a));
+        else ctx.lineTo(cx+r*Math.cos(a),cy-4+r*Math.sin(a));
+      }
+      ctx.fillStyle='rgba(255,68,68,0.8)'; ctx.fill();
+    } else if(type==='vol'){
+      // Running figure
+      const b=Math.sin(t/20)*8;
+      ctx.strokeStyle='rgba(0,255,157,0.8)'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(cx,cy-20,7,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx,cy-12); ctx.lineTo(cx,cy+8);
+      ctx.moveTo(cx,cy-2); ctx.lineTo(cx-12,cy+16+b);
+      ctx.moveTo(cx,cy-2); ctx.lineTo(cx+12,cy+16-b);
+      ctx.moveTo(cx,cy+8); ctx.lineTo(cx-10+b,cy+24);
+      ctx.moveTo(cx,cy+8); ctx.lineTo(cx+10-b,cy+24);
+      ctx.stroke();
+    } else {
+      // Person + location pin
+      ctx.strokeStyle='rgba(26,111,255,0.8)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(cx,cy-16,8,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx,cy-8); ctx.lineTo(cx,cy+10);
+      ctx.moveTo(cx,cy+2); ctx.lineTo(cx-10,cy+16);
+      ctx.moveTo(cx,cy+2); ctx.lineTo(cx+10,cy+16);
+      ctx.stroke();
+      // Pin
+      const py=Math.sin(t/30)*3;
+      ctx.beginPath(); ctx.arc(cx+16,cy-10+py,5,0,Math.PI*2);
+      ctx.fillStyle='rgba(26,111,255,0.3)'; ctx.fill();
+      ctx.strokeStyle='rgba(26,111,255,0.8)'; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+16,cy-5+py); ctx.lineTo(cx+16,cy+py+5);
+      ctx.stroke();
+    }
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// AI Viz Canvas
+function drawAiViz(){
+  const canvas=document.getElementById('ai-canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=500,H=400;
+  let t=0;
+  const nodes=[];
+  for(let i=0;i<20;i++) nodes.push({
+    x:50+Math.random()*400, y:50+Math.random()*300,
+    vx:(Math.random()-.5)*.5, vy:(Math.random()-.5)*.5,
+  });
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    nodes.forEach(n=>{
+      n.x+=n.vx; n.y+=n.vy;
+      if(n.x<20||n.x>W-20) n.vx*=-1;
+      if(n.y<20||n.y>H-20) n.vy*=-1;
+    });
+    // Connections
+    nodes.forEach((a,i)=>{
+      nodes.slice(i+1).forEach(b=>{
+        const d=Math.hypot(a.x-b.x,a.y-b.y);
+        if(d<120){
+          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+          ctx.strokeStyle=`rgba(26,111,255,${(1-d/120)*.3})`; ctx.lineWidth=.8;
+          ctx.stroke();
+        }
+      });
+    });
+    // Central node
+    const p=Math.sin(t/30)*.5+.5;
+    ctx.beginPath(); ctx.arc(W/2,H/2,18+p*8,0,Math.PI*2);
+    ctx.fillStyle='rgba(26,111,255,0.15)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(W/2,H/2,12,0,Math.PI*2);
+    const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,12);
+    g.addColorStop(0,'#4d9fff'); g.addColorStop(1,'#1a6fff');
+    ctx.fillStyle=g; ctx.fill();
+    // Score arc
+    const score=87;
+    ctx.beginPath();
+    ctx.arc(W-80,80,45,-Math.PI/2,-Math.PI/2+2*Math.PI*(score/100));
+    ctx.strokeStyle='rgba(0,255,157,0.8)'; ctx.lineWidth=4;
+    ctx.lineCap='round'; ctx.stroke();
+    ctx.fillStyle='#e8f0ff';
+    ctx.font='bold 22px "Bebas Neue"'; ctx.textAlign='center';
+    ctx.fillText(score,W-80,86);
+    ctx.font='8px "JetBrains Mono"'; ctx.fillStyle='rgba(136,153,187,.7)';
+    ctx.fillText('TRUST',W-80,100);
+    ctx.lineCap='butt';
+    nodes.forEach(n=>{
+      ctx.beginPath(); ctx.arc(n.x,n.y,3,0,Math.PI*2);
+      ctx.fillStyle='rgba(77,159,255,0.7)'; ctx.fill();
+    });
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// Reward Canvas
+function drawRewardViz(){
+  const canvas=document.getElementById('reward-canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=460,H=380;
+  let t=0;
+  const bars=[
+    {label:'SPEED',val:.85,col:'#1a6fff'},
+    {label:'RESOLUTION',val:.72,col:'#00ff9d'},
+    {label:'SKILL MATCH',val:.91,col:'#ffcc44'},
+    {label:'PROXIMITY',val:.64,col:'#ff4444'},
+    {label:'RELIABILITY',val:.78,col:'#4d9fff'},
+  ];
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const barH=36, gap=18, startY=60;
+    bars.forEach((b,i)=>{
+      const y=startY+i*(barH+gap);
+      const w=(W-140)*b.val;
+      const pulse=1+Math.sin(t/40+i)*.03;
+      // BG
+      ctx.fillStyle='rgba(255,255,255,0.04)';
+      ctx.fillRect(100,y,W-140,barH);
+      // Fill
+      const grad=ctx.createLinearGradient(100,y,100+w*pulse,y);
+      grad.addColorStop(0,b.col+'bb'); grad.addColorStop(1,b.col);
+      ctx.fillStyle=grad;
+      ctx.fillRect(100,y,w*pulse,barH);
+      // Label
+      ctx.fillStyle='rgba(136,153,187,.7)';
+      ctx.font='9px "JetBrains Mono"'; ctx.textAlign='right';
+      ctx.fillText(b.label,90,y+22);
+      // Value
+      ctx.fillStyle=b.col;
+      ctx.textAlign='left';
+      ctx.fillText(Math.round(b.val*100)+'%',106+w*pulse,y+22);
+    });
+    // Points counter
+    const pts=Math.round(1250+Math.sin(t/60)*50);
+    ctx.fillStyle='rgba(5,21,53,0.7)';
+    ctx.fillRect(0,H-90,W,90);
+    ctx.strokeStyle='rgba(77,159,255,0.2)';
+    ctx.strokeRect(0,H-90,W,90);
+    ctx.font='52px "Bebas Neue"'; ctx.textAlign='center';
+    ctx.fillStyle='#4d9fff';
+    ctx.fillText(pts+' PTS',W/2,H-40);
+    ctx.font='10px "JetBrains Mono"'; ctx.fillStyle='rgba(136,153,187,.6)';
+    ctx.fillText('YOUR CURRENT REWARD BALANCE',W/2,H-20);
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ── TICKER ──
+const tickerData=[
+  {col:'red',text:'HIGH ALERT — Structure fire reported in Andheri West'},
+  {col:'yellow',text:'MEDIUM — Flood watch active in Bandra East'},
+  {col:'green',text:'RESOLVED — Power outage fixed in Dadar'},
+  {col:'red',text:'HIGH ALERT — Building collapse risk in Kurla'},
+  {col:'yellow',text:'MEDIUM — Traffic incident on Western Express Hwy'},
+  {col:'green',text:'RESOLVED — Medical emergency handled in Colaba'},
+];
+function buildTicker(){
+  const t=document.getElementById('ticker');
+  const items=[...tickerData,...tickerData].map(d=>`
+    <span class="ticker-item">
+      <span class="ticker-dot ${d.col}"></span>
+      ${d.text}
+    </span>
+  `).join('');
+  t.innerHTML=items;
+}
+buildTicker();
+
+// ── SCROLL ANIMATIONS ──
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      if(e.target.classList.contains('step')){
+        e.target.style.animationDelay=(e.target.dataset.delay||0)+'ms';
+      }
+    }
+  });
+},{threshold:.15});
+document.querySelectorAll('.feature-card,.step,.role-card').forEach((el,i)=>{
+  el.dataset.delay=i*100;
+  observer.observe(el);
+});
+
+// Counter animation
+function animateCounters(){
+  document.querySelectorAll('.stat-num[data-target]').forEach(el=>{
+    const target=parseFloat(el.dataset.target);
+    let current=0;
+    const isFloat=target%1!==0;
+    const step=target/60;
+    const timer=setInterval(()=>{
+      current+=step;
+      if(current>=target){current=target;clearInterval(timer);}
+      el.textContent=isFloat?current.toFixed(1):Math.round(current).toLocaleString();
+    },16);
+  });
+}
+setTimeout(animateCounters,1200);
+
+const platformArchitecture = {
+  frontend: 'React (Vite) + Tailwind CSS',
+  backend: 'Node.js + Express',
+  database: {
+    provider: 'Firebase Firestore',
+    collections: ['users', 'incidents', 'volunteers']
+  },
+  auth: 'Firebase Authentication',
+  ai: {
+    provider: 'Google Gemini API',
+    model: 'gemini-1.5-flash',
+    useCases: ['trust score', 'priority classification', 'fake detection', 'explanation']
+  },
+  realtime: 'Firebase (future-ready)',
+  deployment: {
+    frontend: 'Vercel',
+    backend: 'Render'
+  }
+};
+
+// ── AUTH ──
+function openAuth(){ window.location.href='auth.html'; }
+
+function toggleEmergencyPanel(){
+  document.getElementById('emergency-panel').classList.toggle('active');
+}
+
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('emergency-panel');
+  const trigger=e.target.closest('.nav-cta');
+  if(panel && !panel.contains(e.target) && !trigger){
+    panel.classList.remove('active');
+  }
+});
+
+// ── INIT ALL CANVASES ──
+window.addEventListener('DOMContentLoaded',()=>{
+  drawMapIcon(document.getElementById('icon-map'));
+  drawAlertIcon(document.getElementById('icon-alert'));
+  drawVolIcon(document.getElementById('icon-vol'));
+  drawChatIcon(document.getElementById('icon-chat'));
+  drawMapIcon2(document.getElementById('icon-map2'));
+  drawAiIcon(document.getElementById('icon-ai2'));
+  drawRoleIcon(document.getElementById('role-admin'),'admin');
+  drawRoleIcon(document.getElementById('role-vol'),'vol');
+  drawRoleIcon(document.getElementById('role-cit'),'cit');
+  drawAiViz();
+  drawRewardViz();
+});
+</script>
+</body>
+</html>
+
+

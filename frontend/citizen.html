@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeriPulse — Citizen Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="citizen.css">
+<style>
+  .vp-sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .vp-sidebar-logo {
+    height: 92px;
+    width: auto;
+    max-height: none;
+    max-width: none;
+    aspect-ratio: 620 / 660;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<!-- THIS IS CITIZEN HOME PAGE -->
+<canvas id="bg-canvas"></canvas>
+<canvas id="earth-canvas" width="800" height="800"></canvas>
+<div class="alert-ticker"><div class="ticker-inner" id="ticker"></div></div>
+
+<!-- SIDEBAR SECTION -->
+<aside class="vp-sidebar">
+  <a class="vp-sidebar-brand" href="veripulse.html"><iframe class="vp-sidebar-logo" src="responza_hero_logo_final.html" title="VeriPulse Logo" loading="lazy"></iframe>VeriPulse</a>
+  <div class="vp-side-menu">
+    <a class="vp-side-link active" href="citizen.html"><span class="icon">⌂</span>Home</a>
+    <a class="vp-side-link" href="dashboard.html"><span class="icon">▣</span>Dashboard</a>
+    <a class="vp-side-link" href="report.html"><span class="icon">⚠</span>Report Emergency</a>
+    <a class="vp-side-link" href="volunteer.html"><span class="icon">✦</span>Join as Volunteer</a>
+    <a class="vp-side-link" href="chat.html"><span class="icon">◌</span>Chat</a>
+  </div>
+  <div class="vp-sidebar-footer">Citizen system • live response</div>
+  <a class="vp-side-link vp-side-logout" href="veripulse.html"><span class="icon">⎋</span>Logout</a>
+</aside>
+
+<div class="vp-page">
+  <!-- MAIN CONTENT SECTION -->
+  <main class="vp-page-inner vp-page-enter">
+    <section class="vp-hero vp-hero-compact">
+      <div class="vp-eyebrow">Citizen Command Interface</div>
+      <h1 class="vp-title">CITIZEN HOME</h1>
+      <p class="vp-subtitle">Access your emergency tools, monitor active incidents, and move into reporting, volunteering, mapping, and chat from one unified interface.</p>
+    </section>
+
+    <!-- BUTTON SECTION -->
+    <section class="vp-section vp-section-quick-access vp-section-tight">
+      <div class="vp-home-actions">
+        <a class="vp-home-action report" href="report.html">
+          <span class="vp-action-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3L3 19h18L12 3Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+          </span>
+          REPORT EMERGENCY
+        </a>
+        <a class="vp-home-action dashboard" href="dashboard.html">
+          <span class="vp-action-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="8" height="8" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="3" width="8" height="5" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="10" width="8" height="11" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="13" width="8" height="8" stroke="currentColor" stroke-width="1.8"/></svg>
+          </span>
+          DASHBOARD
+        </a>
+        <a class="vp-home-action volunteer" href="volunteer.html">
+          <span class="vp-action-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M5 20a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.8"/><path d="M20 7v5M17.5 9.5h5" stroke="currentColor" stroke-width="1.8"/></svg>
+          </span>
+          JOIN AS VOLUNTEER
+        </a>
+      </div>
+    </section>
+
+    <section class="vp-section vp-user-section">
+      <div class="vp-section-header">
+        <div class="vp-section-tag">Citizen Profile</div>
+        <h2 class="vp-section-title">YOUR PROFILE & POINTS</h2>
+      </div>
+      <article class="vp-card vp-user-card">
+        <img class="vp-user-avatar" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=160&q=80" alt="Citizen profile photo">
+        <div class="vp-user-meta">
+          <div class="vp-user-name">Aarav Mehta</div>
+          <div class="vp-user-role">Citizen Responder</div>
+        </div>
+        <div class="vp-user-points">
+          <span class="label">Points</span>
+          <span class="value">1,280</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="vp-section vp-leaderboard-section">
+      <div class="vp-section-header">
+        <div class="vp-section-tag">Community Ranking</div>
+        <h2 class="vp-section-title">LEADERBOARD (TOP 10)</h2>
+      </div>
+      <div class="vp-card vp-leaderboard-card">
+        <div class="vp-leaderboard-top3" id="leaderboard-top3" aria-label="Top 3 volunteers"></div>
+        <div class="vp-leaderboard-list-card">
+          <ol class="vp-leaderboard-list" id="leaderboard-list" aria-label="Leaderboard ranks 4 to 10"></ol>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- CHATBOT SECTION -->
+<button class="vp-chat-fab" id="chat-fab" aria-label="Open chatbot">💬</button>
+<div class="vp-chat-window" id="chat-window">
+  <div class="vp-chat-shell vp-chat-shell-mini">
+    <div class="vp-chat-header-mini">
+      <div class="vp-chat-title-mini">AI Assistant</div>
+      <div class="vp-chat-sub-mini">Live help • frontend dummy replies</div>
+    </div>
+    <div class="vp-chat-messages" id="chat-messages">
+      <div class="vp-chat-bubble">
+        <div class="meta">VeriPulse AI</div>
+        How can I help you with an incident or navigation today?
+      </div>
+    </div>
+    <div class="vp-chat-compose">
+      <input id="chat-input" type="text" placeholder="Ask something...">
+      <button class="vp-mini-btn" id="chat-send">Send</button>
+    </div>
+  </div>
+</div>
+<script src="citizen-ui.js"></script>
+<script>
+  // THIS IS CITIZEN HOME PAGE SCRIPT
+  // HANDLE FLOATING CHAT WIDGET
+  const chatFab = document.getElementById('chat-fab');
+  const chatWindow = document.getElementById('chat-window');
+  const chatMessages = document.getElementById('chat-messages');
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+
+  const leaderboardData = [
+    { rank: 1, name: 'Riya Kapoor', points: 1960, image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=240&q=80' },
+    { rank: 2, name: 'Aarav Mehta', points: 1280, image: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=240&q=80' },
+    { rank: 3, name: 'Neha Sharma', points: 1140, image: 'https://images.unsplash.com/photo-1542204625-de293a7b42d7?auto=format&fit=crop&w=240&q=80' },
+    { rank: 4, name: 'Kabir Singh', points: 1020, image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&q=80' },
+    { rank: 5, name: 'Isha Patel', points: 980, image: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&w=120&q=80' },
+    { rank: 6, name: 'Manav Rao', points: 940, image: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=120&q=80' },
+    { rank: 7, name: 'Sanya Nair', points: 890, image: 'https://images.unsplash.com/photo-1549351512-c5e12b11c1e9?auto=format&fit=crop&w=120&q=80' },
+    { rank: 8, name: 'Vikram Jain', points: 850, image: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?auto=format&fit=crop&w=120&q=80' },
+    { rank: 9, name: 'Tara Desai', points: 810, image: 'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=120&q=80' },
+    { rank: 10, name: 'Rohan Das', points: 780, image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80' }
+  ];
+
+  function renderLeaderboard(data) {
+    const top3Host = document.getElementById('leaderboard-top3');
+    const listHost = document.getElementById('leaderboard-list');
+    if (!top3Host || !listHost) return;
+
+    const sorted = [...data].sort((a, b) => a.rank - b.rank);
+    const top3 = sorted.filter(item => item.rank <= 3);
+    const others = sorted.filter(item => item.rank > 3);
+    const podiumOrder = [2, 1, 3];
+
+    top3Host.innerHTML = podiumOrder
+      .map((rank) => {
+        const item = top3.find(entry => entry.rank === rank);
+        if (!item) return '';
+        return `
+          <article class="vp-podium-card vp-podium-rank-${item.rank}">
+            <span class="vp-podium-badge">#${item.rank}</span>
+            <img class="vp-podium-avatar" src="${item.image}" alt="${item.name}">
+            <div class="vp-podium-name">${item.name}</div>
+            <div class="vp-podium-points">${item.points.toLocaleString()} pts</div>
+          </article>
+        `;
+      })
+      .join('');
+
+    listHost.innerHTML = others
+      .map(
+        (item) => `
+          <li>
+            <span class="rank">#${item.rank}</span>
+            <img class="vp-rank-avatar" src="${item.image}" alt="${item.name}">
+            <span class="name">${item.name}</span>
+            <span class="points">${item.points.toLocaleString()}</span>
+          </li>
+        `
+      )
+      .join('');
+  }
+
+  renderLeaderboard(leaderboardData);
+
+  chatFab.addEventListener('click', () => {
+    chatWindow.classList.toggle('active');
+  });
+
+  function addMessage(text, isUser) {
+    const bubble = document.createElement('div');
+    bubble.className = `vp-chat-bubble ${isUser ? 'me' : ''}`;
+    bubble.innerHTML = `<div class="meta">${isUser ? 'You' : 'VeriPulse AI'}</div>${text}`;
+    chatMessages.appendChild(bubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // HANDLE CHAT MESSAGE SEND
+  function sendChat() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    addMessage(text, true);
+    chatInput.value = '';
+    setTimeout(() => {
+      const reply = text.toLowerCase().includes('help') ? 'I can guide you to report, map, volunteer, or dashboard pages.' : 'Acknowledged. I have logged your message in the local chat session.';
+      addMessage(reply, false);
+    }, 450);
+  }
+
+  chatSend.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendChat();
+  });
+</script>
+</body>
+</html>
