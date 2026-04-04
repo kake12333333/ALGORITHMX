@@ -1,5 +1,5 @@
 import express from "express";
-import { createIncident, getIncidents } from "../controllers/incidentController.js";
+import { createIncident, getIncidents, getIncidentsAll, getIncidentsSummary } from "../controllers/incidentController.js";
 import { getVolunteerCandidatesForIncident } from "../controllers/volunteerController.js";
 import upload from "../middleware/upload.js";
 
@@ -17,8 +17,13 @@ function maybeUploadMedia(req, res, next) {
   return next();
 }
 
+router.post("", maybeUploadMedia, createIncident);
+router.post("/", maybeUploadMedia, createIncident);
 router.post("/report", maybeUploadMedia, createIncident);
-router.get("/all", getIncidents);
+router.get("", getIncidents);
+router.get("/", getIncidents);
+router.get("/all", getIncidentsAll);
+router.get("/summary", getIncidentsSummary);
 router.get("/:incidentId/volunteer-candidates", getVolunteerCandidatesForIncident);
 
 export default router;

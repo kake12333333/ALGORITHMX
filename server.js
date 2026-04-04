@@ -15,6 +15,14 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
+app.use("/api/incidents", (req, _res, next) => {
+  console.log(`[API] ${req.method} ${req.originalUrl}`);
+  if (req.method !== "GET") {
+    console.log("[API] body:", req.body);
+  }
+  next();
+});
+
 // Volunteers mounted first so route is always registered (POST /api/volunteers/register)
 app.use("/api/volunteers", volunteersRoutes);
 

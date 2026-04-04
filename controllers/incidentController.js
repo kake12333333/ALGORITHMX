@@ -4,6 +4,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { findEarliestDuplicate, mergeIntoCanonical } from "../services/incidentDuplicateService.js";
 
 const INCIDENTS_COLLECTION = "incidents";
+const memoryIncidents = [];
 
 const ALLOWED_TYPES = [
   "Fire",
@@ -50,9 +51,81 @@ function incidentDocToResponse(id, data, extras = {}) {
   };
 }
 
+function summarizeIncidents(incidents) {
+  const totalAlerts = incidents.length;
+  const activeCases = incidents.filter((item) => String(item.status || "").toLowerCase() === "active").length;
+  const resolvedCases = incidents.filter((item) => String(item.status || "").toLowerCase() === "resolved").length;
+  const highPriority = incidents.filter((item) => String(item.priority || "").toLowerCase() === "high").length;
+  const verified = incidents.filter((item) => Number(item.trust_score ?? 0) > 80).length;
+  const suspicious = incidents.filter((item) => {
+    const score = Number(item.trust_score ?? 0);
+    return score >= 50 && score <= 80;
+  }).length;
+  const fake = incidents.filter((item) => Number(item.trust_score ?? 0) < 50).length;
+
+  return {
+    totalAlerts,
+    activeCases,
+    resolvedCases,
+    verified,
+    highPriority,
+    suspicious,
+    fake,
+  };
+}
+
+function toDashboardReport(incident) {
+  const statusRaw = String(incident.status || "pending").toLowerCase();
+  const status = statusRaw.includes("verified") || statusRaw.includes("active") ? "verified" : "pending";
+  const priorityRaw = String(incident.priority || "low").toLowerCase();
+  const priority = priorityRaw.includes("high") ? "high" : "low";
+  const title = incident.type ? `${incident.type} Report` : "Incident Report";
+
+  return {
+    id: incident.id,
+    title,
+    description: incident.description || "",
+    status,
+    priority,
+    createdAt: incident.createdAt || null,
+    type: incident.type || null,
+    location: incident.location || "",
+    trust_score: incident.trust_score ?? null,
+  };
+}
+
+async function fetchIncidentItems() {
+  if (!db) {
+    return [...memoryIncidents];
+  }
+
+  let snapshot;
+  try {
+    snapshot = await db
+      .collection(INCIDENTS_COLLECTION)
+      .orderBy("createdAt", "desc")
+      .get();
+  } catch {
+    snapshot = await db.collection(INCIDENTS_COLLECTION).get();
+  }
+
+  const items = snapshot.docs.map((doc) => incidentDocToResponse(doc.id, doc.data()));
+
+  items.sort((a, b) => {
+    const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return tb - ta;
+  });
+
+  return items;
+}
+
 export const createIncident = async (req, res) => {
   try {
+    console.log("[Incidents][POST] incoming body:", req.body);
     const { type, description, location } = req.body || {};
+    const reporterName = String(req.body?.reporterName || req.body?.name || "").trim();
+    const reporterEmail = String(req.body?.reporterEmail || req.body?.email || "").trim();
     const normalizedTypeKey = String(type || "").trim().toLowerCase();
     const canonicalType = TYPE_MAP.get(normalizedTypeKey);
 
@@ -111,43 +184,64 @@ export const createIncident = async (req, res) => {
       priority: aiResult.priority,
       status: aiResult.status,
       reason: aiResult.reason,
+      reporter_name: reporterName || null,
+      reporter_email: reporterEmail || null,
       createdAt: FieldValue.serverTimestamp(),
       report_count: 1,
       merged_descriptions: [],
     };
 
+    if (!db) {
+      const memoryId = `MEM-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const memoryRecord = incidentDocToResponse(memoryId, {
+        ...firestorePayload,
+        createdAt: new Date().toISOString(),
+      });
+      memoryIncidents.unshift(memoryRecord);
+      console.log(`[Incidents][POST] saved in memory fallback: ${memoryId}`);
+      return res.status(201).json(memoryRecord);
+    }
+
     const docRef = await db.collection(INCIDENTS_COLLECTION).add(firestorePayload);
     const snap = await docRef.get();
     const data = snap.data();
+    console.log(`[Incidents][POST] saved in Firestore: ${docRef.id}`);
 
     return res.status(201).json(incidentDocToResponse(docRef.id, data));
   } catch (err) {
+    console.error("[Incidents][POST] error:", err);
     return res.status(500).json({ error: err.message || "Failed to create incident" });
   }
 };
 
 export const getIncidents = async (req, res) => {
   try {
-    let snapshot;
-    try {
-      snapshot = await db
-        .collection(INCIDENTS_COLLECTION)
-        .orderBy("createdAt", "desc")
-        .get();
-    } catch {
-      snapshot = await db.collection(INCIDENTS_COLLECTION).get();
-    }
+    const items = await fetchIncidentItems();
+    return res.json(items.map(toDashboardReport));
+  } catch (err) {
+    console.error("[Incidents][GET all] error:", err);
+    return res.status(500).json({ error: err.message || "Failed to fetch incidents" });
+  }
+};
 
-    const items = snapshot.docs.map((doc) => incidentDocToResponse(doc.id, doc.data()));
-
-    items.sort((a, b) => {
-      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return tb - ta;
-    });
-
+export const getIncidentsAll = async (_req, res) => {
+  try {
+    const items = await fetchIncidentItems();
     return res.json(items);
   } catch (err) {
+    console.error("[Incidents][GET raw all] error:", err);
     return res.status(500).json({ error: err.message || "Failed to fetch incidents" });
+  }
+};
+
+export const getIncidentsSummary = async (_req, res) => {
+  try {
+    const incidents = await fetchIncidentItems();
+
+    const summary = summarizeIncidents(incidents);
+    return res.json(summary);
+  } catch (err) {
+    console.error("[Incidents][GET summary] error:", err);
+    return res.status(500).json({ error: err.message || "Failed to fetch incident summary" });
   }
 };

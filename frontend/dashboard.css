@@ -501,6 +501,68 @@
   }
 }
 
+/* ===== LOADING & ERROR STATES ===== */
+
+/* Loading Indicator */
+.vp-dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  border: 1px dashed rgba(77, 159, 255, 0.35);
+  background: rgba(5, 21, 53, 0.45);
+  border-radius: 10px;
+  color: var(--white-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Spinner Animation */
+.vp-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(77, 159, 255, 0.2);
+  border-top-color: var(--blue-bright);
+  border-right-color: var(--green-glow);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.vp-dashboard-error {
+  border: 1px solid rgba(255, 68, 68, 0.35);
+  background: rgba(255, 68, 68, 0.05);
+  padding: 24px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.vp-dashboard-error p {
+  color: var(--red-alert);
+  font-size: 16px;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.vp-dashboard-error small {
+  color: var(--white-dim);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  display: block;
+}
+  }
+}
+
 @media (max-width: 480px) {
   .vp-alert-stats {
     grid-template-columns: 1fr;

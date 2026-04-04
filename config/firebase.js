@@ -2,15 +2,25 @@ import admin from "firebase-admin";
 import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
-const serviceAccount = require("../../serviceAccountKey.json");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+let db = null;
 
-const db = admin.firestore();
+try {
+  const serviceAccount = require("../serviceAccountKey.json");
 
-if (serviceAccount.project_id) {
-  console.log(`[Firebase] Firestore project: ${serviceAccount.project_id}`);
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  }
+
+  db = admin.firestore();
+
+  if (serviceAccount.project_id) {
+    console.log(`[Firebase] Firestore project: ${serviceAccount.project_id}`);
+  }
+} catch (err) {
+  console.warn("[Firebase] Initialization failed. Running with in-memory incident fallback.");
+  console.warn(`[Firebase] Reason: ${err.message}`);
 }
 
 export default db;

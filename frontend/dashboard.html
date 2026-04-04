@@ -98,17 +98,11 @@
 </div>
 <script src="citizen-ui.js"></script>
 <script>
+  // ===== DASHBOARD STATE =====
+  // Initialize with empty data - real data will be populated by Firebase integration
   const dashboardState = {
     selectedFilter: 'all',
-    incidents: [
-      { id: 'ALT-001', userName: 'Riya Kapoor', title: 'Cardiac arrest reported at metro station', location: 'Andheri West, Mumbai', time: '2 min ago', trustScore: 92, verificationStatus: 'Verified', priorityLevel: 'High' },
-      { id: 'ALT-002', userName: 'Aarav Singh', title: 'Building fire on 3rd floor, people trapped', location: 'Bandra East, Mumbai', time: '5 min ago', trustScore: 88, verificationStatus: 'Verified', priorityLevel: 'High' },
-      { id: 'ALT-003', userName: 'Neha Sharma', title: 'Flooding reported in low-lying area', location: 'Kurla, Mumbai', time: '8 min ago', trustScore: 76, verificationStatus: 'Verified', priorityLevel: 'Medium' },
-      { id: 'ALT-004', userName: 'Kabir Patel', title: 'Suspicious smoke reported near school campus', location: 'Thane West, Mumbai', time: '12 min ago', trustScore: 53, verificationStatus: 'Suspicious', priorityLevel: 'Medium' },
-      { id: 'ALT-005', userName: 'Isha Verma', title: 'Gas leak complaint in residential block', location: 'Powai, Mumbai', time: '14 min ago', trustScore: 69, verificationStatus: 'Verified', priorityLevel: 'High' },
-      { id: 'ALT-006', userName: 'Manav Desai', title: 'Road accident with injured commuter', location: 'Sion Circle, Mumbai', time: '16 min ago', trustScore: 84, verificationStatus: 'Verified', priorityLevel: 'High' },
-      { id: 'ALT-007', userName: 'Sanya Nair', title: 'Unverified crowd panic near local station', location: 'Dadar, Mumbai', time: '18 min ago', trustScore: 47, verificationStatus: 'Suspicious', priorityLevel: 'Low' }
-    ]
+    incidents: [] // Will be populated by dashboard-integration.js
   };
 
   const dashboardList = document.getElementById('dashboard-list');
@@ -244,7 +238,10 @@
     if (event.target === helpModal) closeHelpModal();
   });
 
-  renderDashboard();
+  // Firebase integration (dashboard-integration.js) will handle initial render and updates
+  // renderDashboard() called by Firebase integration after data is fetched
 </script>
+<script src="report-submission.js"></script>
+<script src="dashboard-integration.js"></script>
 </body>
 </html>

@@ -120,6 +120,7 @@
     </section>
 </main>
 <script src="citizen-ui.js"></script>
+<script src="report-submission.js"></script>
 <script>
   // THIS IS REPORT PAGE SCRIPT
   // HANDLE LOCATION INPUT
@@ -1109,16 +1110,41 @@
   }
 
   if (reportSubmitBtn) {
-    reportSubmitBtn.addEventListener('click', (event) => {
+    reportSubmitBtn.addEventListener('click', async (event) => {
       event.preventDefault();
       if (speechListening) {
         stopSpeechRecognition();
       }
 
       const reportPayload = buildReportPayload();
-      reportSaveStore.push(reportPayload);
-      console.log('Report payload prepared:', reportPayload);
-      openReportModal();
+      console.log('[Report Page] Submitting incident:', reportPayload);
+      
+      // Disable submit button to prevent double submission
+      reportSubmitBtn.disabled = true;
+      reportSubmitBtn.textContent = 'Submitting...';
+
+      // Submit using the report submission handler
+      if (window.ReportSubmission) {
+        const result = await window.ReportSubmission.handleReportSubmission(reportPayload);
+        console.log('[Report Page] Submission result:', result);
+        
+        // Store in local array as well (for backward compatibility)
+        reportSaveStore.push(reportPayload);
+        
+        // Show success modal
+        openReportModal();
+      } else {
+        console.error('[Report Page] ReportSubmission module not loaded!');
+        alert('Error: Report submission module not loaded');
+        reportSubmitBtn.disabled = false;
+        reportSubmitBtn.textContent = 'Submit Incident';
+      }
+
+      // Re-enable submit button after modal closes
+      setTimeout(() => {
+        reportSubmitBtn.disabled = false;
+        reportSubmitBtn.textContent = 'Submit Incident';
+      }, 500);
     });
   }
 
