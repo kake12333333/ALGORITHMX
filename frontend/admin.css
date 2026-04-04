@@ -520,3 +520,5 @@ body.page-leaving { opacity: 0; transform: scale(0.995); }
     margin-bottom: 10px;
   }
 }
+
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -61,133 +61,116 @@
 </main>
 
 <script>
-  // Dashboard dummy data is isolated for easy backend replacement later.
-  const dashboardOverviewData = [
-    { label: 'Total Alerts', value: 286 },
-    { label: 'Verified Alerts', value: 214 },
-    { label: 'High Priority', value: 37 },
-    { label: 'Suspicious / Fake Reports', value: 19 }
-  ];
+  const API_BASE = 'http://localhost:5000/api';
+  const REFRESH_MS = 8000;
 
-  const volunteerPool = [
-    'Rahul Sharma',
-    'Priya Menon',
-    'Aman Verma',
-    'Neha Kapoor',
-    'Ritesh Iyer',
-    'Sneha Nair',
-    'Kunal Deshmukh',
-    'Anjali Singh'
-  ];
+  // ── helpers ────────────────────────────────────────────────────────────────
 
-  const incidentScaleRules = {
-    small: { min: 1, max: 2 },
-    medium: { min: 2, max: 3 },
-    high: { min: 3, max: 4 }
-  };
-
-  const aiIncidentHistorySeed = [
-    {
-      incidentTitle: 'Fire reported at Airoli Sector 5',
-      incidentScale: 'high',
-      trustScore: 92,
-      priority: 'High',
-      trustScoreReason: 'Multiple media uploads and matching nearby reports increased confidence.',
-      priorityReason: 'High severity signal in a crowded corridor required immediate prioritization.'
-    },
-    {
-      incidentTitle: 'Chemical smell near MIDC lane',
-      incidentScale: 'high',
-      trustScore: 88,
-      priority: 'High',
-      trustScoreReason: 'Two independent reporters submitted consistent geo and time metadata.',
-      priorityReason: 'Potential hazardous exposure in an industrial area elevated urgency to high.'
-    },
-    {
-      incidentTitle: 'Waterlogging at Palm Beach road',
-      incidentScale: 'medium',
-      trustScore: 74,
-      priority: 'Medium',
-      trustScoreReason: 'Traffic slowdown telemetry aligned with citizen media from the same block.',
-      priorityReason: 'Road impact is moderate and localized, so medium response was assigned.'
-    },
-    {
-      incidentTitle: 'Bridge crack report near Old Mill point',
-      incidentScale: 'small',
-      trustScore: 41,
-      priority: 'Suspicious',
-      trustScoreReason: 'Low evidence reliability due to missing corroboration and metadata mismatch.',
-      priorityReason: 'Unverified structural claim with low confidence was marked suspicious for review.'
-    }
-  ];
-
-  function getVolunteerCountByScale(scale) {
-    const rule = incidentScaleRules[scale] || incidentScaleRules.small;
-    return Math.floor(Math.random() * (rule.max - rule.min + 1)) + rule.min;
+  function esc(t) {
+    if (t == null) return '';
+    const m = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' };
+    return String(t).replace(/[&<>"']/g, c => m[c]);
   }
 
-  function assignVolunteersByScale(scale, title, index) {
-    const requiredCount = getVolunteerCountByScale(scale);
-    const rotation = (title.length + index) % volunteerPool.length;
-    const rotatedPool = volunteerPool.slice(rotation).concat(volunteerPool.slice(0, rotation));
-    return rotatedPool.slice(0, requiredCount);
+  function relTime(ts) {
+    if (!ts) return '—';
+    const s = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+    if (s < 60)  return s + 's ago';
+    const m = Math.floor(s / 60);
+    if (m < 60)  return m + 'm ago';
+    const h = Math.floor(m / 60);
+    if (h < 24)  return h + 'h ago';
+    return Math.floor(h / 24) + 'd ago';
   }
 
-  const adminAiHistoryData = aiIncidentHistorySeed.map(function (incident, index) {
-    return {
-      incidentTitle: incident.incidentTitle,
-      incidentScale: incident.incidentScale,
-      assignedVolunteers: assignVolunteersByScale(incident.incidentScale, incident.incidentTitle, index),
-      trustScore: incident.trustScore,
-      priority: incident.priority,
-      trustScoreReason: incident.trustScoreReason,
-      priorityReason: incident.priorityReason
-    };
-  });
-
-  function priorityChip(priority) {
-    if (priority === 'High') return '<span class="admin-chip danger">High</span>';
-    if (priority === 'Medium') return '<span class="admin-chip warn">Medium</span>';
-    return '<span class="admin-chip">Suspicious</span>';
+  function priorityChip(p) {
+    const l = String(p || '').toLowerCase();
+    if (l === 'high')   return '<span class="admin-chip danger">High</span>';
+    if (l === 'medium') return '<span class="admin-chip warn">Medium</span>';
+    return '<span class="admin-chip">Low</span>';
   }
 
   function trustChip(score) {
-    if (score >= 85) return '<span class="admin-chip ok">' + score + '%</span>';
-    if (score >= 60) return '<span class="admin-chip warn">' + score + '%</span>';
-    return '<span class="admin-chip danger">' + score + '%</span>';
+    const n = Number(score ?? 0);
+    if (n >= 85) return '<span class="admin-chip ok">'   + n + '%</span>';
+    if (n >= 60) return '<span class="admin-chip warn">' + n + '%</span>';
+    return '<span class="admin-chip danger">' + n + '%</span>';
   }
 
-  function renderOverviewCards() {
+  function statusLabel(inc) {
+    const p = String(inc.priority || '').toLowerCase();
+    const s = Number(inc.trust_score ?? 0);
+    if (p === 'high' && s >= 80) return '<span class="admin-chip danger">High</span>';
+    if (p === 'medium')          return '<span class="admin-chip warn">Medium</span>';
+    if (s < 50)                  return '<span class="admin-chip">Suspicious</span>';
+    return '<span class="admin-chip ok">Verified</span>';
+  }
+
+  // ── render functions ───────────────────────────────────────────────────────
+
+  function renderCards(summary) {
     const wrap = document.getElementById('overview-cards');
     if (!wrap) return;
-    wrap.innerHTML = dashboardOverviewData.map(function (item) {
-      return '<article class="admin-stat"><div class="admin-stat-label">' + item.label + '</div><div class="admin-stat-value">' + item.value + '</div></article>';
-    }).join('');
+    const items = [
+      { label: 'Total Alerts',           value: summary.totalAlerts   ?? 0 },
+      { label: 'Verified Alerts',        value: summary.verified      ?? 0 },
+      { label: 'High Priority',          value: summary.highPriority  ?? 0 },
+      { label: 'Suspicious / Fake Reports', value: (summary.suspicious ?? 0) + (summary.fake ?? 0) }
+    ];
+    wrap.innerHTML = items.map(item =>
+      '<article class="admin-stat"><div class="admin-stat-label">' + item.label +
+      '</div><div class="admin-stat-value" style="transition:color .3s">' + item.value + '</div></article>'
+    ).join('');
   }
 
-  function renderAiHistory() {
+  function renderHistory(incidents) {
     const body = document.getElementById('ai-history-body');
     if (!body) return;
-    body.innerHTML = adminAiHistoryData.map(function (entry) {
-      const aiReason =
-        '<div><strong>Trust Score Reason:</strong> ' + entry.trustScoreReason + '</div>' +
-        '<div style="margin-top: 6px;"><strong>Priority Reason:</strong> ' + entry.priorityReason + '</div>';
+    if (!incidents.length) {
+      body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--white-dim);padding:24px">No incidents yet.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = incidents.slice(0, 10).map(inc => {
+      const title    = esc(inc.title || (inc.type ? inc.type + ' Report' : 'Incident Report'));
+      const location = esc(inc.location || '—');
+      const score    = Number(inc.trust_score ?? 0);
+      const time     = relTime(inc.createdAt);
+      const priority = esc(inc.priority || 'Low');
+      const reason   = esc(inc.reason || '—');
+      const reporter = esc(inc.reporter_name || inc.type ? (inc.type || '') + ' Reporter' : 'Anonymous');
 
       return '<tr>' +
-        '<td>' + entry.incidentTitle + '</td>' +
-        '<td>' + entry.assignedVolunteers.join(', ') + '</td>' +
-        '<td>' + trustChip(entry.trustScore) + '</td>' +
-        '<td>' + priorityChip(entry.priority) + '</td>' +
-        '<td style="max-width: 420px;">' + aiReason + '</td>' +
+        '<td>' + title + '<br><small style="color:var(--white-dim);font-size:11px">📍 ' + location + ' · ' + time + '</small></td>' +
+        '<td style="color:var(--white-dim);font-size:12px">' + reporter + '</td>' +
+        '<td>' + trustChip(score) + '</td>' +
+        '<td>' + priorityChip(priority) + '</td>' +
+        '<td style="max-width:360px;font-size:12px;line-height:1.6;color:var(--white-dim)">' + reason + '</td>' +
       '</tr>';
     }).join('');
   }
 
+  // ── fetch & refresh ────────────────────────────────────────────────────────
+
+  async function refresh() {
+    try {
+      const [summaryRes, incidentsRes] = await Promise.all([
+        fetch(API_BASE + '/incidents/summary'),
+        fetch(API_BASE + '/incidents/all')
+      ]);
+      if (summaryRes.ok)   renderCards(await summaryRes.json());
+      if (incidentsRes.ok) renderHistory(await incidentsRes.json());
+    } catch (err) {
+      console.warn('[Admin] Sync failed:', err.message);
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
-    renderOverviewCards();
-    renderAiHistory();
+    refresh();
+    setInterval(refresh, REFRESH_MS);
   });
 </script>
+
 
 <script src="citizen-ui.js"></script>
 <script src="admin.js"></script>

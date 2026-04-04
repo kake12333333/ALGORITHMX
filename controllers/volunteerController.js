@@ -18,9 +18,12 @@ export function volunteerToResponse(id, data) {
     id,
     name: data.name ?? "",
     age: data.age ?? null,
+    email: data.email ?? "",
+    phone: data.phone ?? "",
     location: data.location ?? "",
     skills: data.skills ?? "",
     reason: data.reason ?? "",
+    status: data.status ?? "pending",
     id_document_url: data.id_document_url ?? "",
     tasks_completed: typeof data.tasks_completed === "number" ? data.tasks_completed : 0,
     createdAt: serializeTimestamp(data.createdAt),
@@ -29,7 +32,7 @@ export function volunteerToResponse(id, data) {
 
 export const registerVolunteer = async (req, res) => {
   try {
-    const { name, age, location, skills, reason } = req.body || {};
+    const { name, age, location, skills, reason, email, phone } = req.body || {};
 
     if (!name || !String(name).trim()) {
       return res.status(400).json({ error: "name is required" });
@@ -50,11 +53,14 @@ export const registerVolunteer = async (req, res) => {
     const payload = {
       name: String(name).trim(),
       age: ageNum,
+      email: email ? String(email).trim() : "",
+      phone: phone ? String(phone).trim() : "",
       location: String(location).trim(),
       skills: String(skills).trim(),
       reason: reason ? String(reason).trim() : "",
       id_document_url: idUrl,
       tasks_completed: 0,
+      status: "pending",
       createdAt: FieldValue.serverTimestamp(),
     };
 
@@ -163,5 +169,29 @@ export const getVolunteerCandidatesForIncident = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ error: err.message || "Failed to rank volunteers" });
+  }
+};
+
+export const updateVolunteerStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body || {};
+
+    if (!status) {
+      return res.status(400).json({ error: "status is required" });
+    }
+
+    const ref = db.collection(VOLUNTEERS_COLLECTION).doc(id);
+    const snap = await ref.get();
+    if (!snap.exists) {
+      return res.status(404).json({ error: "Volunteer not found" });
+    }
+
+    await ref.update({ status: String(status).trim() });
+    const updatedSnap = await ref.get();
+    
+    return res.json(volunteerToResponse(updatedSnap.id, updatedSnap.data()));
+  } catch (err) {
+    return res.status(500).json({ error: err.message || "Failed to update volunteer status" });
   }
 };

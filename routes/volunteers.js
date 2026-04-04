@@ -1,6 +1,6 @@
 import express from "express";
 import upload from "../middleware/upload.js";
-import { registerVolunteer, listVolunteers } from "../controllers/volunteerController.js";
+import { registerVolunteer, listVolunteers, updateVolunteerStatus } from "../controllers/volunteerController.js";
 
 const router = express.Router();
 
@@ -14,5 +14,6 @@ function maybeIdUploadVolunteer(req, res, next) {
 
 router.post("/register", maybeIdUploadVolunteer, registerVolunteer);
 router.get("/", listVolunteers);
+router.patch("/:id/status", updateVolunteerStatus);
 
 export default router;

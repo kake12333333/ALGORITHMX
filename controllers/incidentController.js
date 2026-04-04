@@ -43,10 +43,11 @@ function incidentDocToResponse(id, data, extras = {}) {
     status: data.status ?? null,
     reason: data.reason ?? "",
     statusFlow: data.statusFlow ?? null,
-    createdAt: serializeTimestamp(data.createdAt),
     report_count: data.report_count ?? 1,
     merged_descriptions: data.merged_descriptions ?? [],
     last_merged_at: serializeTimestamp(data.last_merged_at),
+    required_volunteers: data.required_volunteers ?? 1,
+    assignments: data.assignments ?? [],
     ...extras,
   };
 }
@@ -91,6 +92,8 @@ function toDashboardReport(incident) {
     type: incident.type || null,
     location: incident.location || "",
     trust_score: incident.trust_score ?? null,
+    reporter_name: incident.reporter_name || "",
+    reporter_email: incident.reporter_email || "",
   };
 }
 
@@ -175,6 +178,8 @@ export const createIncident = async (req, res) => {
       );
     }
 
+    const requiredVols = aiResult.priority === 'High' ? 3 : aiResult.priority === 'Medium' ? 2 : 1;
+
     const firestorePayload = {
       type: canonicalType,
       description,
@@ -189,6 +194,8 @@ export const createIncident = async (req, res) => {
       createdAt: FieldValue.serverTimestamp(),
       report_count: 1,
       merged_descriptions: [],
+      required_volunteers: requiredVols,
+      assignments: [],
     };
 
     if (!db) {
@@ -217,7 +224,12 @@ export const createIncident = async (req, res) => {
 export const getIncidents = async (req, res) => {
   try {
     const items = await fetchIncidentItems();
-    return res.json(items.map(toDashboardReport));
+    // Filter out fake and removed incidents from the public citizen feed
+    const visibleItems = items.filter(inc => {
+      const s = String(inc.status || '').toLowerCase();
+      return s !== 'fake' && s !== 'closed' && s !== 'removed';
+    });
+    return res.json(visibleItems.map(toDashboardReport));
   } catch (err) {
     console.error("[Incidents][GET all] error:", err);
     return res.status(500).json({ error: err.message || "Failed to fetch incidents" });
@@ -243,5 +255,78 @@ export const getIncidentsSummary = async (_req, res) => {
   } catch (err) {
     console.error("[Incidents][GET summary] error:", err);
     return res.status(500).json({ error: err.message || "Failed to fetch incident summary" });
+  }
+};
+
+export const updateIncidentAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { volunteerId, action } = req.body; // action: 'accept' | 'reject'
+
+    if (!volunteerId || !action) {
+      return res.status(400).json({ error: "volunteerId and action are required." });
+    }
+
+    if (!db) {
+       return res.status(500).json({ error: "Firestore unavailable for update" });
+    }
+
+    const docRef = db.collection(INCIDENTS_COLLECTION).doc(id);
+    const snap = await docRef.get();
+    
+    if (!snap.exists) {
+      return res.status(404).json({ error: "Incident not found" });
+    }
+
+    const data = snap.data();
+    let currentAssignments = data.assignments || [];
+    const required_volunteers = data.required_volunteers || 1;
+
+    // Filter out existing record for this volunteer to avoid duplicate states
+    currentAssignments = currentAssignments.filter(a => a.volunteerId !== volunteerId);
+    
+    currentAssignments.push({
+      volunteerId,
+      action: action.toLowerCase(),
+      timestamp: new Date().toISOString()
+    });
+
+    const acceptedCount = currentAssignments.filter(a => a.action === 'accept').length;
+    let newStatus = data.status;
+
+    if (acceptedCount >= required_volunteers && (String(data.status || '').toLowerCase() === 'verified' || String(data.status || '').toLowerCase() === 'active')) {
+      newStatus = 'Assigned'; // Fully matched out
+    }
+
+    await docRef.update({
+      assignments: currentAssignments,
+      status: newStatus
+    });
+
+    return res.json({ success: true, status: newStatus, acceptedCount, required_volunteers, assignments: currentAssignments });
+  } catch (err) {
+    console.error("[Incidents][PATCH assignment] error:", err);
+    return res.status(500).json({ error: err.message || "Failed to update incident assignment" });
+  }
+};
+
+export const updateIncidentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!status) return res.status(400).json({ error: "status is required" });
+    if (!db) return res.status(500).json({ error: "Firestore unavailable" });
+    
+    const docRef = db.collection(INCIDENTS_COLLECTION).doc(id);
+    const snap = await docRef.get();
+    
+    if (!snap.exists) return res.status(404).json({ error: "Incident not found" });
+    
+    await docRef.update({ status: status.toLowerCase() });
+    return res.json({ success: true, status: status.toLowerCase() });
+  } catch (err) {
+    console.error("[Incidents][PATCH status] error:", err);
+    return res.status(500).json({ error: err.message });
   }
 };

@@ -36,9 +36,16 @@
           <input class="vp-input" type="number" id="vol-age" placeholder="Your age">
         </div>
         <div>
-          <label class="vp-form-label">ID Upload</label>
+          <label class="vp-form-label">Location</label>
+          <div style="display: flex; gap: 8px;">
+            <input class="vp-input" type="text" id="vol-location" placeholder="e.g. Bandra West" style="flex: 1;">
+            <button type="button" id="get-location-btn" style="background: rgba(26, 111, 255, 0.1); border: 1px solid rgba(77, 159, 255, 0.3); color: var(--blue-bright); padding: 0 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; cursor: pointer; border-radius: 2px; transition: all 0.2s;">📍 Auto</button>
+          </div>
+        </div>
+        <div>
+          <label class="vp-form-label">ID Upload (Optional)</label>
           <label class="vp-upload">
-            <span class="vp-upload-label">Upload Aadhar / ID</span>
+            <span class="vp-upload-label" id="id-upload-label">Upload Aadhar / ID</span>
             <input type="file" id="vol-id-file" accept="image/*,.pdf">
             <span class="vp-upload-button">Choose File</span>
           </label>
@@ -70,50 +77,285 @@
 
 <script src="citizen-ui.js"></script>
 <script>
-  // THIS IS VOLUNTEER PAGE SCRIPT
-  // VOLUNTEER FORM SUBMISSION
+  const API_BASE = 'http://localhost:5000/api';
 
-  // Collect form data and save to localStorage
-  function captureFormData() {
-    const name = document.getElementById('vol-name').value.trim();
-    const age = document.getElementById('vol-age').value.trim();
-    const skills = document.getElementById('vol-skills').value.trim();
-    const reason = document.getElementById('vol-reason').value.trim();
-    const idFile = document.getElementById('vol-id-file').files[0];
+  function esc(t) {
+    if (t == null) return '';
+    const m = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' };
+    return String(t).replace(/[&<>"']/g, c => m[c]);
+  }
+
+  // Update file input label text when a file is chosen
+  document.getElementById('vol-id-file')?.addEventListener('change', function(e) {
+    const lbl = document.getElementById('id-upload-label');
+    if (lbl) {
+      lbl.textContent = this.files && this.files[0] ? this.files[0].name : 'Upload Aadhar / ID';
+    }
+  });
+
+  async function checkSession() {
+    const session = localStorage.getItem('vpVolunteerSession');
+    if (!session) return;
     
-    return {
-      name: name || 'Not provided',
-      age: age || 'Not provided',
-      skills: skills || 'Not provided',
-      reason: reason || 'Not provided',
-      idFileName: idFile ? idFile.name : 'Not provided',
-      submittedAt: new Date().toISOString()
-    };
+    // User is logged in as a volunteer, hide form
+    document.getElementById('volunteer-form').style.display = 'none';
+
+    try {
+      const parsed = JSON.parse(session);
+      const res = await fetch(API_BASE + '/volunteers');
+      const allVols = await res.json();
+      const me = allVols.find(v => v.id === parsed.id) || parsed; // use live data if found
+
+      const statusColor = me.status === 'active' ? 'var(--green-glow)' : 
+                          me.status === 'rejected' ? 'var(--red-alert)' : 'var(--yellow-warn)';
+
+      const profileHtml = `
+        <div style="background:rgba(5, 21, 53, 0.7); border:1px solid rgba(77, 159, 255, 0.2); padding:32px; text-align:center; box-shadow:0 0 40px rgba(26, 111, 255, 0.1);">
+          <div style="width:64px;height:64px;border-radius:50%;background:rgba(26,111,255,0.1);border:1px solid rgba(77,159,255,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--blue-bright)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <h2 style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;margin-bottom:4px;">${esc(me.name)}</h2>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--white-dim);margin-bottom:16px;">Volunteer ID: ${me.id ? me.id.slice(-8).toUpperCase() : 'UNKNOWN'}</div>
+          
+          <div style="display:inline-block;padding:8px 16px;border:1px solid ${statusColor};background:rgba(255,255,255,0.03);color:${statusColor};font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:24px;">
+            Status: ${esc(me.status).toUpperCase()}
+          </div>
+          <p style="color:var(--white-dim);font-size:13px;line-height:1.6;max-width:400px;margin:0 auto 32px;">
+            ${me.status === 'active' ? 'Your account is fully active. You will be matched with relevant local incidents.' : 'Your registration has been submitted and is pending review by city administrators.'}
+          </p>
+
+          <button onclick="logoutVolunteer()" style="background:transparent;border:1px solid rgba(255,68,68,0.4);color:var(--red-alert);padding:10px 24px;font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:all 0.2s;">Logout</button>
+        </div>
+      `;
+
+      // insert profile into the section
+      const formEl = document.getElementById('volunteer-form');
+      formEl.insertAdjacentHTML('afterend', `<div id="volunteer-profile-view">${profileHtml}</div>`);
+
+      if (me.status === 'active') {
+        try {
+          const incRes = await fetch(API_BASE + '/incidents/all');
+          const allIncidents = await incRes.json();
+          
+          const myLoc = String(me.location || '').toLowerCase();
+          const mySkills = String(me.skills || '').toLowerCase();
+
+          const activeIncidents = allIncidents.filter(i => {
+            const s = String(i.status || '').toLowerCase();
+            const incLoc = String(i.location || '').toLowerCase();
+            
+            const isUnresolved = s !== 'resolved' && s !== 'closed' && s !== 'assigned';
+            const LocationMatch = myLoc && (incLoc.includes(myLoc) || myLoc.includes(incLoc));
+            
+            const assignments = i.assignments || [];
+            const alreadyResponded = assignments.some(a => a.volunteerId === me.id);
+            const acceptedCount = assignments.filter(a => a.action === 'accept').length;
+            const required = i.required_volunteers || 1;
+            const isFullyAssigned = acceptedCount >= required;
+            
+            return isUnresolved && LocationMatch && !alreadyResponded && !isFullyAssigned;
+          });
+
+          if (activeIncidents.length > 0) {
+            let incidentsHtml = `<div style="margin-top: 40px; text-align: left;">
+              <h3 style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--white);letter-spacing:1px;margin-bottom:20px;border-bottom:1px solid rgba(77,159,255,0.2);padding-bottom:12px;">ACTIVE MISSIONS IN YOUR AREA</h3>
+              <div style="display:flex;flex-direction:column;gap:16px;">`;
+            
+            activeIncidents.forEach(inc => {
+              const priority = String(inc.priority || '').toLowerCase();
+              let pColor = priority === 'high' || priority === 'critical' ? 'var(--red-alert)' : priority === 'medium' ? 'var(--yellow-warn)' : 'var(--blue-bright)';
+              
+              let matchScore = 45; // Baseline generic
+              const incText = `${inc.type} ${inc.description}`.toLowerCase();
+              if (mySkills) {
+                const skillsArr = mySkills.split(',').map(ss => ss.trim()).filter(ss => ss.length > 2);
+                let matches = 0;
+                skillsArr.forEach(skill => {
+                  if (incText.includes(skill)) matches++;
+                });
+                if (matches > 0) matchScore = Math.min(98, 70 + (matches * 15));
+              }
+              const scoreColor = matchScore >= 80 ? 'var(--green-glow)' : 'var(--blue-bright)';
+
+              incidentsHtml += `
+                <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);padding:20px;border-radius:4px;border-left:3px solid ${pColor}; transition:opacity 0.3s;" id="inc-card-${inc.id}">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                    <div>
+                      <h4 style="margin:0;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;">${esc(inc.type || 'Emergency Incident')}</h4>
+                      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${scoreColor};margin-top:4px;">AI MATCH: ${matchScore}%</div>
+                    </div>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 8px;background:rgba(255,255,255,0.05);color:var(--white-dim);">${esc(inc.location)}</span>
+                  </div>
+                  <p style="margin:0;color:var(--white-dim);font-size:13px;line-height:1.5;margin-bottom:16px;">${esc(inc.description || 'No description provided.')}</p>
+                  
+                  <div style="display:flex;gap:12px;margin-top:12px;border-top:1px dashed rgba(255,255,255,0.1);padding-top:16px;">
+                    <button onclick="handleIncidentAssignment('${inc.id}', 'accept', '${me.id}')" style="background:var(--blue-bright);color:#000;border:none;padding:6px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">Accept Mission</button>
+                    <button onclick="handleIncidentAssignment('${inc.id}', 'reject', '${me.id}')" style="background:transparent;color:var(--white-dim);border:1px solid rgba(255,255,255,0.2);padding:6px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:0.2s;" onmouseover="this.style.color='#fff';this.style.borderColor='#fff'" onmouseout="this.style.color='var(--white-dim)';this.style.borderColor='rgba(255,255,255,0.2)'">Reject</button>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,0.3);align-self:center;margin-left:auto;">${inc.assignments?.filter(a => a.action === 'accept').length || 0} / ${inc.required_volunteers || 1} Volunteers</span>
+                  </div>
+                </div>
+              `;
+            });
+            incidentsHtml += `</div></div>`;
+            document.getElementById('volunteer-profile-view').insertAdjacentHTML('beforeend', incidentsHtml);
+          } else {
+             document.getElementById('volunteer-profile-view').insertAdjacentHTML('beforeend', `
+               <div style="margin-top: 40px; text-align:center; padding:20px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.1); color:var(--white-dim); font-size:13px;">
+                  No active incidents currently require your assistance. 
+               </div>
+             `);
+          }
+        } catch(err) {
+          console.warn('Failed to load incidents for volunteer:', err);
+        }
+      }
+
+    } catch(err) {
+      console.warn('Failed to get live session:', err);
+    }
   }
 
-  // Initialize page on load
-  function initializePage() {
-    const joinBtn = document.getElementById('join-btn');
-    const successModal = document.getElementById('successModal');
-    const homeBtn = document.getElementById('homeBtn');
+  window.logoutVolunteer = function() {
+    localStorage.removeItem('vpVolunteerSession');
+    window.location.reload();
+  };
 
-    joinBtn.addEventListener('click', (e) => {
-      e.preventDefault();
+  window.handleIncidentAssignment = async function(incidentId, action, volunteerId) {
+    const card = document.getElementById('inc-card-' + incidentId);
+    try {
+      const res = await fetch(API_BASE + '/incidents/' + incidentId + '/assignment', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ volunteerId, action })
+      });
+      if (res.ok) {
+        if (card) {
+          card.style.opacity = '0';
+          setTimeout(() => card.remove(), 300);
+        }
+      } else {
+        const text = await res.text();
+        alert("Failed to submit assignment: " + text);
+      }
+    } catch(err) {
+      alert("Error: " + err);
+    }
+  };
 
-      const volunteerData = captureFormData();
-      localStorage.setItem('volunteerData', JSON.stringify(volunteerData));
+  async function handleGetLocation() {
+    const locInput = document.getElementById('vol-location');
+    const locBtn = document.getElementById('get-location-btn');
+    
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
 
-      successModal.classList.add('active');
+    locBtn.textContent = 'Wait...';
+    locBtn.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      try {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        // Basic reverse geocoding free API
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+        
+        let area = '';
+        if (data && data.address) {
+          area = data.address.suburb || data.address.neighbourhood || data.address.city || data.address.county || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+        } else {
+          area = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+        }
+        
+        locInput.value = area;
+        locBtn.textContent = '📍 Auto';
+        locBtn.disabled = false;
+      } catch (err) {
+        locInput.value = `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+        locBtn.textContent = '📍 Auto';
+        locBtn.disabled = false;
+      }
+    }, (error) => {
+      alert("Unable to retrieve your location");
+      locBtn.textContent = '📍 Auto';
+      locBtn.disabled = false;
+    });
+  }
+
+  async function submitVolunteerForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('join-btn');
+    btn.textContent = 'Submitting...';
+    btn.disabled = true;
+
+    try {
+      const name = document.getElementById('vol-name').value.trim();
+      const age = document.getElementById('vol-age').value.trim();
+      const location = document.getElementById('vol-location').value.trim();
+      const skills = document.getElementById('vol-skills').value.trim();
+      const reason = document.getElementById('vol-reason').value.trim();
+      const file = document.getElementById('vol-id-file').files[0];
+
+      if(!name || !age || !location || !skills) {
+        alert('Name, age, location, and skills are required.');
+        btn.textContent = 'Join';
+        btn.disabled = false;
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append('name', name);
+      fd.append('age', age);
+      fd.append('location', location);
+      fd.append('skills', skills);
+      fd.append('reason', reason);
+      if(file) fd.append('id_document', file);
+
+      const res = await fetch(API_BASE + '/volunteers/register', {
+        method: 'POST',
+        body: fd
+      });
+
+      if(!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || 'Registration failed');
+      }
+
+      const returnedVol = await res.json();
+      
+      // Save session
+      localStorage.setItem('vpVolunteerSession', JSON.stringify(returnedVol));
+      localStorage.setItem('vpRole', 'volunteer');
+
+      // Show success popup
+      document.getElementById('successModal').classList.add('active');
       document.body.classList.add('no-y-overflow');
-    });
 
-    homeBtn.addEventListener('click', () => {
-      window.location.href = 'veripulse.html';
-    });
+    } catch(err) {
+      alert(err.message);
+      btn.textContent = 'Join';
+      btn.disabled = false;
+    }
   }
 
-  // Initialize when DOM is ready
-  document.addEventListener('DOMContentLoaded', initializePage);
+  document.addEventListener('DOMContentLoaded', () => {
+    checkSession();
+    
+    const getLocBtn = document.getElementById('get-location-btn');
+    if (getLocBtn) getLocBtn.addEventListener('click', handleGetLocation);
+
+    const joinBtn = document.getElementById('join-btn');
+    if (joinBtn) joinBtn.addEventListener('click', submitVolunteerForm);
+    
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) {
+      homeBtn.addEventListener('click', () => {
+        window.location.reload(); // Reload instead of redirect to show new profile natively
+      });
+    }
+  });
 </script>
 </body>
 </html>

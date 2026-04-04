@@ -61,13 +61,20 @@
     font-family: 'Bebas Neue', sans-serif;
     font-size: 28px; letter-spacing: 3px;
     color: var(--white);
-    display: flex; align-items: center; gap: 10px;
+    position: relative;
+    display: flex; align-items: center;
+    min-height: 44px;
+    padding-left: 96px;
     white-space: nowrap;
   }
   .nav-logo-mark {
-    width: 44px;
-    height: 44px;
-    flex: 0 0 44px;
+    width: 86px;
+    height: 92px;
+    flex: 0 0 86px;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
     border: 0;
     background: transparent;
     display: block;

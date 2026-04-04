@@ -104,6 +104,8 @@
     selectedFilter: 'all',
     incidents: [] // Will be populated by dashboard-integration.js
   };
+  // Expose for dashboard-integration.js
+  window.dashboardState = dashboardState;
 
   const dashboardList = document.getElementById('dashboard-list');
   const filterTabs = Array.from(document.querySelectorAll('.vp-filter-tab'));
@@ -161,20 +163,33 @@
 
   function renderIncidentCard(incident) {
     const priorityClass = getPriorityClass(incident.priorityLevel);
+    const statusClass = String(incident.verificationStatus).toLowerCase().replace(/\s+/g, '-');
+    const score = Number(incident.trustScore || 0);
+    const barColor = score > 80
+      ? 'var(--green-glow)'
+      : score >= 50 ? 'var(--yellow-warn)' : 'var(--red-alert)';
 
     return `
       <article class="vp-alert-card-shell" data-id="${incident.id}">
         <div class="vp-alert-left">
+          <div class="vp-alert-id">#${incident.id ? incident.id.slice(-8).toUpperCase() : '\u2014'}</div>
           <div class="vp-alert-reporter">Reported by <span class="vp-reporter-name">${incident.userName}</span></div>
           <h2 class="vp-alert-title">${incident.title}</h2>
-          <div class="vp-alert-location">${incident.location}</div>
+          ${incident.description ? `<div class="vp-alert-desc">${incident.description}</div>` : ''}
+          <div class="vp-alert-location">\u{1F4CD} ${incident.location}</div>
           <div class="vp-alert-time"><span class="vp-time-icon" aria-hidden="true"><svg viewBox="0 0 20 20" focusable="false"><circle cx="10" cy="10" r="7.2"></circle><path d="M10 5.8v4.4l2.9 1.6"></path></svg></span>${incident.time}</div>
         </div>
         <div class="vp-alert-right">
+          <div class="vp-trust-row">
+            <span class="vp-trust-text">Trust ${score}%</span>
+            <div class="vp-trust-track">
+              <div class="vp-trust-fill" style="width:${score}%; background:${barColor};"></div>
+            </div>
+          </div>
           <div class="vp-alert-stats">
             <div class="vp-stat-group">
-              <span class="vp-stat-label">Trust Score</span>
-              <span class="vp-stat-value">${incident.trustScore}%</span>
+              <span class="vp-stat-label">Type</span>
+              <span class="vp-stat-value">${incident.type || 'N/A'}</span>
             </div>
             <div class="vp-stat-group">
               <span class="vp-stat-label">Priority</span>
@@ -182,7 +197,7 @@
             </div>
             <div class="vp-stat-group">
               <span class="vp-stat-label">Status</span>
-              <span class="vp-stat-value status-${incident.verificationStatus.toLowerCase()}">${incident.verificationStatus}</span>
+              <span class="vp-stat-value status-${statusClass}">${incident.verificationStatus}</span>
             </div>
           </div>
         </div>
@@ -202,6 +217,8 @@
 
     dashboardList.innerHTML = filtered.map(renderIncidentCard).join('');
   }
+  // Expose so dashboard-integration.js can trigger re-renders after data loads
+  window.renderDashboard = renderDashboard;
 
   function openHelpModal(incidentId) {
     const incident = dashboardState.incidents.find(item => item.id === incidentId);

@@ -64,21 +64,145 @@
   </main>
 </div>
 <script src="citizen-ui.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
-  // THIS IS CHAT PAGE SCRIPT
-  // HANDLE CHAT MESSAGE SEND
+  // VERIPULSE LIVE COMMUNICATION SCRIPT
+  
   const chatBody = document.getElementById('chat-body');
   const chatInput = document.getElementById('chat-input');
   const sendBtn = document.getElementById('send-btn');
+  const vpPage = document.querySelector('.vp-chat-shell');
+  
+  let socket = null;
+  let userProfile = { role: 'citizen', name: 'Citizen', location: null };
+  const SOCKET_BASE_URL = window.location.origin;
+
+  // 1. Establish Identity
+  try {
+    const vSession = localStorage.getItem('vpVolunteerSession');
+    if (vSession) {
+       const parsed = JSON.parse(vSession);
+       if (parsed.status === 'active') {
+          userProfile.role = 'volunteer';
+          userProfile.name = parsed.name || 'Volunteer';
+       }
+    }
+    // E.g. Check Admin LocalStorage 
+    if (localStorage.getItem('adminToken')) {
+       userProfile.role = 'admin';
+       userProfile.name = 'Admin';
+    }
+  } catch(e) {}
+
+  // 2. Fetch Location
+  function initializeChat() {
+     // Wipe hardcoded texts
+     chatBody.innerHTML = '<div style="color:var(--white-dim);padding:24px;text-align:center;">Requesting location access securely to join coordination grid...</div>';
+     
+     if (!navigator.geolocation) {
+         chatBody.innerHTML = '<div style="color:var(--red-alert);padding:24px;text-align:center;">Geolocation is not supported by your browser. Cannot join chat.</div>';
+         return;
+     }
+
+     navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+          // Reverse geocode
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+          if (res.ok) {
+            const data = await res.json();
+            userProfile.location = data.address.city || data.address.town || data.address.village || 'Unknown Area';
+            connectToSocket();
+          } else { throw new Error('Geocoding failed'); }
+        } catch(err) {
+           // Fallback to coordinates
+           userProfile.location = `Lat ${pos.coords.latitude.toFixed(2)}, Lon ${pos.coords.longitude.toFixed(2)}`;
+           connectToSocket();
+        }
+     }, (err) => {
+         chatBody.innerHTML = `<div style="color:var(--red-alert);padding:24px;text-align:center;">Location access denied. You must share your location to participate in emergency planning.<br><button onclick="window.location.reload()" style="margin-top:20px;padding:8px 16px;background:var(--blue-bright);border:none;cursor:pointer;">Retry</button></div>`;
+     });
+  }
+
+  // 3. Mount Sockets
+  function connectToSocket() {
+      // PRE-FILL DUMMY VALUES FOR SITUATIONAL AWARENESS (Power Outage)
+      chatBody.innerHTML = `
+        <div class="vp-message left">
+          <div class="meta">Volunteer • 10:01 • 📍 Sector 15</div>
+          Transformer blowout confirmed at Sector 15. Grid team is 10 mins out.
+        </div>
+        <div class="vp-message left">
+          <div class="meta">Citizen • 10:02 • 📍 New Panvel</div>
+          All street lights are down here. Visibility is extremely low, be careful on the roads.
+        </div>
+        <div class="vp-message left" style="border-left: 2px solid var(--red-alert);">
+          <div class="meta"><span style="color:var(--red-alert);font-weight:700;">[ADMIN]</span> • 10:03</div>
+          Priority grid restoration is in progress for the medical clinic in Sector 15.
+        </div>
+      `;
+      chatBody.scrollTop = chatBody.scrollHeight;
+
+      socket = io(SOCKET_BASE_URL, { transports: ['websocket'] });
+
+      socket.on('connect', () => {
+         socket.emit('join', userProfile);
+      });
+
+      socket.on('system', (msgText) => {
+         const div = document.createElement('div');
+         div.style.textAlign = 'center';
+         div.style.color = 'var(--yellow-warn)';
+         div.style.fontSize = '12px';
+         div.style.padding = '12px 0';
+         div.style.fontFamily = "'JetBrains Mono', monospace";
+         div.innerText = msgText;
+         chatBody.appendChild(div);
+         chatBody.scrollTop = chatBody.scrollHeight;
+      });
+
+      socket.on('warning', (msgText) => {
+         alert("SERVER WARNING: " + msgText);
+      });
+
+      socket.on('banned', (msgText) => {
+         vpPage.innerHTML = `
+           <div style="text-align:center;padding:40px;margin-top:100px;background:var(--card-bg);border:1px solid var(--red-alert);border-radius:4px;">
+              <h2 style="color:var(--red-alert);font-family:'Bebas Neue',sans-serif;font-size:32px;">ACCESS REVOKED</h2>
+              <p style="color:var(--white-dim);margin-top:12px;">${msgText}</p>
+           </div>
+         `;
+         if (socket) socket.disconnect();
+      });
+
+      socket.on('message', (msgObj) => {
+         const bubble = document.createElement('div');
+         const isMe = msgObj.id === socket.id;
+         bubble.className = `vp-message ${isMe ? 'right' : 'left'}`;
+         
+         // In right bubble, 'You' tag
+         let finalMeta = msgObj.meta;
+         if (isMe) {
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            finalMeta = `You • ${timeStr} • 📍 ${userProfile.location}`; 
+         }
+
+         bubble.innerHTML = `<div class="meta">${finalMeta}</div>${escapeHtml(msgObj.text)}`;
+         chatBody.appendChild(bubble);
+         chatBody.scrollTop = chatBody.scrollHeight;
+      });
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
 
   function sendMessage() {
+    if (!socket || !socket.connected) return;
     const text = chatInput.value.trim();
     if (!text) return;
-    const bubble = document.createElement('div');
-    bubble.className = 'vp-message right';
-    bubble.innerHTML = '<div class="meta">You • now</div>' + text;
-    chatBody.appendChild(bubble);
-    chatBody.scrollTop = chatBody.scrollHeight;
+    socket.emit('chatMessage', { text });
     chatInput.value = '';
   }
 
@@ -86,6 +210,9 @@
   chatInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') sendMessage();
   });
+
+  // START
+  initializeChat();
 </script>
 </body>
 </html>

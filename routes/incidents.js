@@ -1,5 +1,5 @@
 import express from "express";
-import { createIncident, getIncidents, getIncidentsAll, getIncidentsSummary } from "../controllers/incidentController.js";
+import { createIncident, getIncidents, getIncidentsAll, getIncidentsSummary, updateIncidentAssignment, updateIncidentStatus } from "../controllers/incidentController.js";
 import { getVolunteerCandidatesForIncident } from "../controllers/volunteerController.js";
 import upload from "../middleware/upload.js";
 
@@ -25,5 +25,7 @@ router.get("/", getIncidents);
 router.get("/all", getIncidentsAll);
 router.get("/summary", getIncidentsSummary);
 router.get("/:incidentId/volunteer-candidates", getVolunteerCandidatesForIncident);
+router.patch("/:id/assignment", updateIncidentAssignment);
+router.patch("/:id/status", updateIncidentStatus);
 
 export default router;

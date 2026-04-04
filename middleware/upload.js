@@ -12,6 +12,7 @@ const allowedMimeTypes = new Set([
   "image/jpg",
   "image/png",
   "video/mp4",
+  "application/pdf",
 ]);
 
 const storage = multer.diskStorage({
@@ -27,7 +28,7 @@ const storage = multer.diskStorage({
 
 function fileFilter(_req, file, cb) {
   if (!allowedMimeTypes.has(file.mimetype)) {
-    return cb(new Error("Invalid file type. Only jpg, png, mp4 are allowed."));
+    return cb(new Error("Invalid file type. Only jpg, png, mp4, and pdf are allowed."));
   }
   return cb(null, true);
 }
